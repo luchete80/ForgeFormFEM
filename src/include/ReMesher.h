@@ -11,6 +11,12 @@ namespace MetFEM{
 
 class Domain_d;
 
+//ONLY FOR STORING DATA
+struct Mesh{
+  
+  
+};
+
 class ReMesher{
   public:
   
@@ -78,8 +84,8 @@ class ReMesher{
 
   Domain_d *m_dom;
   int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
-  //Omega_h::Mesh m_mesh;
-  //Omega_h::Mesh m_old_mesh;
+  Mesh m_mesh;
+  Mesh m_old_mesh;
   
   //IF OMEGA H NOT USED
   double *m_x;

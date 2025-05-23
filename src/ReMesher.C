@@ -12,6 +12,130 @@ using namespace std;
 #include <array>
 #include <iostream>
 
+
+void create_mesh(Omega_h::Mesh& mesh, 
+
+                 double* h_node_coords, int num_nodes, 
+                 int* h_element_conn, int num_elements
+                 ) 
+{
+
+    #ifdef DEBUG_MODE
+    std::cout << "Creating "<< num_nodes<< " nodes "<<std::endl;
+    #endif
+    // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
+    Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
+    Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
+
+    //std::cout << "Done "<<std::endl;    
+    for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
+    for (int i = 0; i < num_elements * 4; ++i) tets[i] = h_element_conn[i];
+    
+    //cout << "ELEM CONN "<<h_element_conn[0]<<endl;
+
+    //std::cout << "Convert to write "<<std::endl;    
+    // Convert HostWrite to Write<> for Omega_h
+    Omega_h::Write<Omega_h::Real> device_coords(coords);
+    Omega_h::Write<Omega_h::LO> device_tets(tets);
+
+    #ifdef DEBUG_MODE
+    std::cout << "Building from elements "<<std::endl;
+    #endif
+    // Build mesh (works on both CPU and GPU)
+    build_from_elems_and_coords(&mesh,OMEGA_H_SIMPLEX, 3, device_tets, device_coords); // Correct method
+
+  if (!mesh.has_tag(Omega_h::VERT, "coordinates")) {
+      std::cerr << "Error: Mesh does not have 'coordinates' tag!" << std::endl;
+  }
+  classify_elements(&mesh);
+  classify_faces<3>(&mesh);
+  classify_edges<3>(&mesh);
+  classify_vertices(&mesh);
+  create_class_dim<3>(&mesh);
+  
+if (!mesh.has_tag(Omega_h::VERT, "class_dim")) {
+    std::cerr << "Error: Mesh does not have 'class_dim' tag!" << std::endl;
+}
+    // Step 2: Add the node coordinates as a tag (e.g., "coords")
+    //mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(device_coords));
+
+    // Step 3: Add element connectivity as a tag (e.g., "conn")
+    //mesh.set_tag(Omega_h::CELL, "conn", Omega_h::Reals(device_tets));
+
+    // Optionally, you can also print out to verify the number of nodes and elements
+    //std::cout << "Mesh created with " << mesh.nverts() << " vertices and "
+    //          << mesh.nelems() << " elements.\n";
+}
+
+
+namespace MetFEM{
+  ReMesher::ReMesher(Domain_d *d)
+  //:dim(d->m_dim)
+  {
+
+    m_dom = d;
+    m_dom->m_dim = 3;
+
+
+    Omega_h::Library lib;
+    Omega_h::Mesh mesh(&lib);
+
+    // Example data
+    /*
+    int num_nodes = 4;
+    int num_elements = 1;
+
+    double h_node_data[] = {
+        0.0, 0.0, 0.0,  // v0
+        1.0, 0.0, 0.0,  // v1
+        0.0, 1.0, 0.0,  // v2
+        0.0, 0.0, 1.0   // v3
+    };
+
+    int h_connectivity_data[] = {
+        0, 1, 2, 3  // One tetrahedron
+    };
+    
+    */
+    //std::cout << "Runing adapt test"<<std::endl;
+    //run_2D_adapt(&lib);
+    //std::cout<<"Done "<<std::endl;
+
+#ifdef CUDA_BUILD
+    // Allocate GPU memory
+    double* d_node_data;
+    int* d_connectivity_data;
+    cudaMalloc((void**)&d_node_data, m_dom->m_node_count * 3 * sizeof(double));
+    cudaMalloc((void**)&d_connectivity_data, num_elements * 4 * sizeof(int));
+
+    // Copy from host to GPU
+    //std::cout << "Old Mesh verts : "<<m_dom->m_node_count<<std::endl;
+    cudaMemcpy(d_node_data, x, num_nodes * 3 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_connectivity_data, h_connectivity_data, num_elements * 4 * sizeof(int), cudaMemcpyHostToDevice);
+
+    // Create mesh using GPU data
+    create_mesh(mesh, d_node_data, num_nodes, d_connectivity_data, num_elements);
+
+    
+    //vtk::Reader vtk_reader("piece_0.vtu");
+    //classify_vertices(&mesh);
+    //vtk_reader.read(mesh);
+
+    // Free GPU memory
+    cudaFree(d_node_data);
+    cudaFree(d_connectivity_data);
+#else
+    #ifdef DEBUG_MODE
+    std::cout << "Creating mesh"<<std::endl;
+    #endif
+    // CPU case
+    create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
+#endif
+
+      m_old_mesh = mesh; 
+      m_mesh = mesh;
+}
+
 // Function to compute barycentric coordinates for a 3D tetrahedron
 std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
                                               const std::array<double, 3>& p0,
@@ -125,12 +249,6 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
 
 void ReMesher::WriteDomain(){
 
-  cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
-  if(m_type==OMG_H) {
-    m_node_count = m_mesh.nverts();
-    m_elem_count = m_mesh.nelems();
-  }
-
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   double *ufield  = new double [3*m_node_count];   
   //std::vector<double> ufield(3*m_node_count, 0.0);  
@@ -231,14 +349,9 @@ void ReMesher::WriteDomain(){
   //// WRITE
   m_dom->Free();
   
-  if (m_type==OMG_H){
-    m_dom->m_node_count = m_mesh.nverts();
-    m_dom->m_elem_count = m_mesh.nelems();
-  } else{
-    
-    m_dom->m_node_count = m_node_count;
-    m_dom->m_elem_count = m_elem_count;    
-  }
+
+  m_dom->m_node_count = m_node_count;
+  m_dom->m_elem_count = m_elem_count;    
   
   cout << "creating domain"<<endl;
   m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
@@ -677,7 +790,7 @@ void ReMesher::MapElemVectors() {
     double max_field_val = 0.;
 
     
-    //auto f = OMEGA_H_LAMBDA(LO elem) {
+    auto f = OMEGA_H_LAMBDA(LO elem) {
         bool found = false;
         std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
 
