@@ -441,5 +441,54 @@ dev_t void Domain_d::SearchExtNodes() {
     printf("Ext face count %d\n\n",ext_faces);
 }
 
+host_   void Domain_d::AddBCVelNode(const int &node, const int &dim, const double &val){
+  if (dim == 0)       { bcx_nod_h.push_back(node);bcx_val_h.push_back(val);bc_count[0]++;}
+  else if (dim == 1)  { bcy_nod_h.push_back(node);bcy_val_h.push_back(val);bc_count[1]++;}
+  else if (dim == 2)  { bcz_nod_h.push_back(node);bcz_val_h.push_back(val);bc_count[2]++;}
+}
+
+host_   void Domain_d::AllocateBCs() {
+  for (int d=0;d<m_dim;d++){cout << "Allocated "<<bc_count[d]<< " Velocity BCs for dof "<<d<<endl; }
+  // cudaMalloc((void **)&bcx_nod, bc_count[0] * sizeof (int)); 
+  // cudaMalloc((void **)&bcy_nod, bc_count[1] * sizeof (int)); 
+  // cudaMalloc((void **)&bcz_nod, bc_count[2] * sizeof (int)); 
+
+  malloc_t(bcx_nod, int, bc_count[0] );     
+  malloc_t(bcy_nod, int, bc_count[1] );     
+  malloc_t(bcz_nod, int, bc_count[2] );     
+
+  malloc_t(bcx_val, double, bc_count[0] );     
+  malloc_t(bcy_val, double, bc_count[1] );     
+  malloc_t(bcz_val, double, bc_count[2] );     
+  
+  // cudaMalloc((void **)&bcx_val, bc_count[0] * sizeof (double)); 
+  // cudaMalloc((void **)&bcy_val, bc_count[1] * sizeof (double)); 
+  // cudaMalloc((void **)&bcz_val, bc_count[2] * sizeof (double)); 
+  
+  //ONLY FOR COMPLETENESS IN CASE OF CPU CODE
+  double *bcx_val_h_ptr = new double [bc_count[0]];
+  int *bcx_nod_h_ptr = new int [bc_count[0]];
+
+  double  *bcy_val_h_ptr = new double [bc_count[1]];
+  int     *bcy_nod_h_ptr = new int [bc_count[1]];
+
+  double  *bcz_val_h_ptr = new double [bc_count[2]];
+  int     *bcz_nod_h_ptr = new int    [bc_count[2]];  
+
+  for (int i=0;i<bcx_nod_h.size();i++){bcx_nod_h_ptr[i]= bcx_nod_h[i];bcx_val_h_ptr[i]= bcx_val_h[i];}
+  for (int i=0;i<bcy_nod_h.size();i++){bcy_nod_h_ptr[i]= bcy_nod_h[i];bcy_val_h_ptr[i]= bcy_val_h[i];} 
+  for (int i=0;i<bcz_nod_h.size();i++){bcz_nod_h_ptr[i]= bcz_nod_h[i];bcz_val_h_ptr[i]= bcz_val_h[i];}
+  
+  memcpy_t(bcx_val, bcx_val_h_ptr, sizeof(double) * bc_count[0]);    
+  memcpy_t(bcx_nod, bcx_nod_h_ptr, sizeof(int) * bc_count[0]);   
+  memcpy_t(bcy_val, bcy_val_h_ptr, sizeof(double) * bc_count[1]);    
+  memcpy_t(bcy_nod, bcy_nod_h_ptr, sizeof(int) * bc_count[1]);   
+  memcpy_t(bcz_val, bcz_val_h_ptr, sizeof(double) * bc_count[2]);    
+  memcpy_t(bcz_nod, bcz_nod_h_ptr, sizeof(int) * bc_count[2]);   
+
+  delete bcx_val_h_ptr,bcy_val_h_ptr,bcz_val_h_ptr;
+  delete bcx_nod_h_ptr,bcy_nod_h_ptr,bcz_nod_h_ptr;
+  
+}
 
 };
