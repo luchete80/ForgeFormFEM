@@ -265,8 +265,8 @@ int main(int argc, char **argv) {
   cout << "Calulating min element size ..."<<endl;
 
 
-  dom_d->calcMinEdgeLength();
-  dx = dom_d->getMinLength();
+  //dom_d->calcMinEdgeLength();
+  //dx = dom_d->getMinLength();
   
 
   cout<< "Min length: "<<dx<<endl;

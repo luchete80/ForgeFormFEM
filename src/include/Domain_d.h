@@ -149,7 +149,7 @@ public:
   void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
-  void calcMinEdgeLength();
+  //void calcMinEdgeLength();
   
   ///// ATENTION! THIS IS Deriv x DETJ
   inline double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE

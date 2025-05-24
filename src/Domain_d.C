@@ -17,7 +17,59 @@ using namespace LS_Dyna;
 
 namespace MetFEM {
   
-  
+#define ELNOD  4   //ORIGINALLY 8
+#define FACENOD 3  //ORIGINALLY 4
+#define ELFAC  4   //ORIGINALLY 6
+//OLD FOT HEXA, CHANGE IT
+
+struct Face {
+    int nodes[FACENOD];
+    int count; // Number of occurrences of this face
+};
+
+bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
+    int matchCount = 0;
+    for (int i = 0; i < FACENOD; i++) {
+        for (int j = 0; j < FACENOD; j++) {
+            if (f1.nodes[i] == f2.nodes[j]) {
+                matchCount++;
+                break;
+            }
+        }
+    }
+    return matchCount == FACENOD;
+}
+// Add a face to the face list or increment its count if already present
+void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
+    for (int i = 0; i < faceCount; i++) {
+        if (areFacesEqual(faceList[i], newFace)) {
+            faceList[i].count++;
+            return;
+        }
+    }
+    // Add new face
+    faceList[faceCount] = newFace;
+    faceList[faceCount].count = 1;
+    faceCount++;
+}
+
+
+// Function to add all 6 faces of a hexahedron
+void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
+    // Define the 6 faces of the hexahedron
+    //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
+    Face faces[ELFAC] = {
+        {{element[0], element[1], element[2]}, 0}, // Front face
+        {{element[0], element[1], element[3]}, 0}, // Right face
+        {{element[1], element[2], element[3]}, 0}, // Back face
+        {{element[2], element[0], element[3]}, 0}, // Left face
+    };
+
+    // Add each face to the face list
+    for (int i = 0; i < ELFAC; i++) {
+        addFace(faceList, faceCount, faces[i]);
+    }
+}
 
 dev_t void Domain_d::calcElemJAndDerivatives () {
 
@@ -219,8 +271,175 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   } // e < elem_colunt
   
 
+}//DERIVATIVES
+
+
+void Domain_d::Free(){
+  free_t (x);
+  free_t (v);
+  free_t (a);
+  free_t (u);
+  free_t (u_dt);
+  
+  free_t (prev_a);  
+	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
+  
+  free_t (m_fi); //Internal forces
+  free_t (m_fe);
+  
+  free_t (m_mdiag);
+  free_t (m_mglob); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+
+  free_t (T);
+  free_t( m_dTedt);
+
+ 
+  free_t (m_H);
+
+  free_t (m_dH_detJ_dx);
+  free_t (m_dH_detJ_dy);
+  free_t (m_dH_detJ_dz);
+
+
+  //DOUBLE POINTERS ATTENTION
+  // free_t (m_dHrs);     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
+  // free_t (x2);         //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
+  // free_t (dH_dxyz); 
+  
+  free_t(elnod_h); ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
+  free_t(dHxy_detJ ); ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+
+  
+
+  free_t(m_detJ );    
+  
+  free_t(m_nodxelem_e);
+  
+  free_t(m_ematm); //Elemental mas matrices
+
+  free_t(m_str_rate);   
+  free_t(m_rot_rate );     
+  free_t(m_sigma);   
+  free_t(m_tau );   
+  
+
+  free_t(p); 
+  free_t(rho);   
+  free_t(rho_0); 
+  
+  free_t(vol); 
+  free_t(vol_0); 
+
+  free_t(m_voln); 
+  free_t(m_vol_0n); 
+
+  free_t(m_f_elem);   
+  free_t(m_f_elem_hg);   
+
+  free_t(mat);   
+
+  // AXISYMM
+  free_t (m_radius);
+
+  free_t(m_jacob);
+    
+
+  free_t(ext_nodes);
+  free_t(contforce);
+
+  free_t (pl_strain);
+  free_t (sigma_y);  
+
+  free_t(m_nodel);           // NODE ELEMENTS: ELEMENTS SHARED BY EACH NODE [nodxelem* node_count] call:  m_nodel[nod,elcount] =EL i,e m_nodel[nod_offset+elcount]
+  free_t(m_nodel_loc);        //
+  free_t(m_nodel_offset);    //OFFSET OF THE
+  free_t(m_nodel_count);    
+  free_t(m_elnod_count);   /// FOR CONTACT, TO REPLACE FOR m_node_count
+  
+  // unsigned int    *m_contsurf_count;
+  // unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
+  // unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
+
+  // ////////////////////// CONTACT 
+	// // TODO, EACH RIGID PARTICLE SHOULD 
+  // int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO
+  // TriMesh_d *trimesh;
+  // int trimesh_count;
+  // int *mesh_id; //particle mesh ID	
+	// bool *ext_nodes;
+  // int ext_nodes_count;
+  // double *contforce; 
+  // bool contact;
+  
+  //free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
+  //free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);
+  //bc_count[0] = bc_count[1] = bc_count[2] = 0;
 }
 
+
+void Domain_d::AssignMaterial (Material_ *material_h) {
+//    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
+    malloc_t(materials, Material_,1);
+    memcpy_t(materials, material_h, 1 * sizeof(Material_));	
+}
+
+void Domain_d::setDensity(const double &r){
+  double *rho_h = new double [m_elem_count];
+  for (int n=0;n<m_elem_count;n++) rho_h[n] = r;
+  memcpy_t(this->rho_0, rho_h, sizeof(double) * m_elem_count);    
+  
+  delete rho_h;
+  
+}
+
+dev_t void Domain_d::SearchExtNodes() {
+
+    printf("Adding hexas\n");
+    // Array to store all faces
+    //Face faceList[MAX_FACES];
+    Face *faceList;
+    malloc_t(faceList, Face, m_elem_count*ELFAC);
+    int faceCount = 0;
+    int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
+
+    // Process each hexahedron to extract its faces
+    for (int i = 0; i < m_elem_count; i++) {
+        for (int ne=0;ne<m_nodxelem;ne++)
+          elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
+        //cout << "Adding faces "<<endl;
+        addTriangleFaces(faceList, faceCount, elements);
+    }
+    //cout << "done. Face count: "<<faceCount<<endl;
+    // Array to track external nodes
+    for (int n=0;n<m_node_count;n++)
+      ext_nodes[n] = false;
+    ext_nodes_count = 0;
+    //bool externalNodes[m_node_count] = {false};
+
+    // Identify external nodes by checking faces that appear only once
+    int ext_faces = 0;
+    for (int i = 0; i < faceCount; i++) {
+        if (faceList[i].count == 1) { // External face
+            for (int j = 0; j < FACENOD; j++) {
+                ext_nodes[faceList[i].nodes[j]] = true;
+                
+            }
+            ext_faces++;
+        }
+    }
+
+    // Output the external nodes
+    printf("External Nodes: ");
+    for (int i = 0; i < m_node_count; i++) {
+        if (ext_nodes[i]) {
+            printf("%d ", i);
+            ext_nodes_count++;
+        }
+    }
+    printf("\n");
+    printf("Ext node count %d\n\n",ext_nodes_count);
+    printf("Ext face count %d\n\n",ext_faces);
+}
 
 
 };
