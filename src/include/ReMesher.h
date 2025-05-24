@@ -1,21 +1,24 @@
 #ifndef _REMESHER_
 #define _REMESHER_
 
+#include <Omega_h_mesh.hpp>
 
 enum Remesh_Type { MMG=0, OMG_H=1 };
 
-
+void create_mesh(Omega_h::Mesh& mesh, 
+#ifdef CUDA_BUILD
+                 double* d_node_coords, int num_nodes, 
+                 int* d_element_conn, int num_elements
+#else
+                 double* h_node_coords, int num_nodes, 
+                 int* h_element_conn, int num_elements
+#endif
+                 ) ;
 #include "defs.h"
 
 namespace MetFEM{
 
 class Domain_d;
-
-//ONLY FOR STORING DATA
-struct Mesh{
-  
-  
-};
 
 class ReMesher{
   public:
@@ -84,8 +87,8 @@ class ReMesher{
 
   Domain_d *m_dom;
   int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
-  Mesh m_mesh;
-  Mesh m_old_mesh;
+  Omega_h::Mesh m_mesh;
+  Omega_h::Mesh m_old_mesh;
   
   //IF OMEGA H NOT USED
   double *m_x;

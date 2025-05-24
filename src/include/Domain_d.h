@@ -14,7 +14,6 @@
 #include <string>
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
-#include "parallel_for_each.h"
 
 #define _QUA2D_ 0
 #define _TRI2D_ 1

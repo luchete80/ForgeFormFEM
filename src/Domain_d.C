@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "Matrix_temp.h"
+#include "Matrix.h"
 #include <sstream>
 #include <fstream> 
 #include <iostream>
@@ -11,7 +11,6 @@
 #include "tensor3.C"
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
-#include "parallel_for_each.h"
 
 using namespace std;
 using namespace LS_Dyna;
