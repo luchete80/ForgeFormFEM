@@ -229,7 +229,7 @@ public:
   inline vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
   
   
-	void SolveChungHulbert();
+	void Solve();
   void setdtOut(const double &t){m_dtout=t;}
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}

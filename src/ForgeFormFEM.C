@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 
   }
 
-	//dom_d->SolveChungHulbert ();
+	dom_d->Solve ();
   
   
 	cout << "Program ended."<<endl;

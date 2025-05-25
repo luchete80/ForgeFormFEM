@@ -48,7 +48,7 @@ set (SOURCES
                          #Mechanical.C
                          Mesh.C
                          #Matrices.C
-                         #Solver.C
+                         Solver.C
                          #input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          #VTKWriter.C

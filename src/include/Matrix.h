@@ -505,4 +505,64 @@ __spec int SetMatVals(Matrix *mat, int argcount, ...){
   // end if
 // end function
 
+///// ONLY FOR SMALL PROBLEMS AND PROTOTYPNG. TOO SLOW
+__spec Matrix SolveLinearSystem(Matrix A, Matrix b) {
+    if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
+        printf("Invalid dimensions for linear system!\n");
+        // Return an empty matrix or handle error
+        return Matrix();
+    }
+
+    int n = A.m_row;
+    Matrix Ab(n, n + 1); // Augmented matrix [A | b]
+
+    // Copy A and b into Ab
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            Ab(i, j) = A(i, j);
+        }
+        Ab(i, n) = b(i, 0);
+    }
+
+    // Gaussian elimination
+    for (int i = 0; i < n; ++i) {
+        // Pivot
+        double maxEl = fabs(Ab(i, i));
+        int maxRow = i;
+        for (int k = i + 1; k < n; ++k) {
+            if (fabs(Ab(k, i)) > maxEl) {
+                maxEl = fabs(Ab(k, i));
+                maxRow = k;
+            }
+        }
+
+        // Swap rows
+        for (int k = i; k < n + 1; ++k) {
+            double tmp = Ab(maxRow, k);
+            Ab(maxRow, k) = Ab(i, k);
+            Ab(i, k) = tmp;
+        }
+
+        // Eliminate below
+        for (int k = i + 1; k < n; ++k) {
+            double factor = Ab(k, i) / Ab(i, i);
+            for (int j = i; j < n + 1; ++j) {
+                Ab(k, j) -= factor * Ab(i, j);
+            }
+        }
+    }
+
+    // Back substitution
+    Matrix x(n, 1);
+    for (int i = n - 1; i >= 0; --i) {
+        x(i, 0) = Ab(i, n);
+        for (int j = i + 1; j < n; ++j) {
+            x(i, 0) -= Ab(i, j) * x(j, 0);
+        }
+        x(i, 0) /= Ab(i, i);
+    }
+
+    return x;
+}
+
 #endif
