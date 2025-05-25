@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.18)
 
 set (BUILD_EXAMPLES OFF)
 
@@ -46,11 +46,11 @@ set (SOURCES
                          Domain_d.C
                          #Matrices.C
                          #Mechanical.C
-                         #Mesh.C
+                         Mesh.C
                          #Matrices.C
                          #Solver.C
                          #input.C
-                         #../lib/LSDynaReader/src/lsdynaReader.cpp
+                         ../lib/LSDynaReader/src/lsdynaReader.cpp
                          #VTKWriter.C
                    )
 

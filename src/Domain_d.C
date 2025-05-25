@@ -71,6 +71,55 @@ void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
     }
 }
 
+void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
+ 
+  m_dim = 3;
+  vector_t Xp;
+  ///IMPORTANT BEFORE SETDIMENSION, m_gp_count and m_nodxelem must be set
+  m_gp_count = 1;
+  m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
+  this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
+  
+  cout << "Allocating "<< reader.m_node.size()<< " nodes "<<endl;
+  double *x_H =  new double [m_dim*m_node_count];
+  for (int n=0;n<m_node_count;n++){
+    //cout << "Node "<<n<<endl;
+    for (int d=0;d<3;d++){
+      //cout <<reader.m_node[n].m_x[d]<< " ";
+      x_H[3*n+d] = reader.m_node[n].m_x[d]; 
+    }
+    //cout <<endl;
+  }
+  memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
+  delete x_H;
+  
+
+  int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
+  cout << "Allocating "<< m_elem_count <<" elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
+  
+  int offs = 0;
+  for (int e=0;e<reader.m_elem_count;e++){
+    //cout << "Element node count "<<reader.m_elem[e].node.size()<<endl;
+    for (int en=0;en<reader.m_elem[e].node.size();en++  ){
+      elnod_h [offs+en] = reader.m_elem[e].node[en];
+      //ls_node n = reader.getElemNode(e, en);
+      //cout << reader.m_elem[e].node[en]<<" ";
+      //cout << "Node id "<<n.m_id<<", xyz:"<<n.m_x[0]<<", "<<n.m_x[1]<<", "<<n.m_x[2]<<endl;
+    }
+    //cout << endl;
+    offs += reader.m_elem[e].node.size();    
+  }
+
+  cout << "Element nodes "<<elnod_h [0]<<" "<<elnod_h [1] << " "<<elnod_h [2]<<endl;
+    
+  cout << "Setting elements per node "<<endl; 
+  setNodElem(elnod_h);
+  
+  cout << "Node Size: "<<m_node_count<<endl;  
+  cout << "Element Size: "<<m_elem_count<<endl;  
+  
+}
+
 dev_t void Domain_d::calcElemJAndDerivatives () {
 
   par_loop (e, m_elem_count) {
@@ -273,6 +322,215 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
 }//DERIVATIVES
 
+void Domain_d::SetDimension(const int &node_count, const int &elem_count){
+  
+  m_node_count = node_count;
+  m_elem_count = elem_count;
+  
+  // NODAL VARIABLES
+  
+  malloc_t (x,      double,node_count*m_dim);
+  malloc_t (v,      double,node_count*m_dim);
+  malloc_t (a,      double,node_count*m_dim);
+  malloc_t (u,      double,node_count*m_dim);
+  malloc_t (u_dt,   double,node_count*m_dim);
+  
+  malloc_t (prev_a, double,node_count*m_dim);  
+	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
+  malloc_t (m_fi,double,node_count*m_dim); //Internal forces
+  malloc_t (m_fe,double,node_count*m_dim);
+  
+  malloc_t (m_mdiag, double,node_count);
+  malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+
+  //////if thermal
+  
+  malloc_t (T,      double,node_count);
+  malloc_t(m_dTedt,    double, m_elem_count * m_dim * m_nodxelem);
+
+  /// MATRICES ///
+  /// dHxy_detJ: DIM X NODXELEM
+  /// TO AVOID EXCESSIVE OFFSET, SPLIT DIMENSIONS
+  //cudaMalloc((void **)&m_dH_detJ_dx, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
+  //cudaMalloc((void **)&m_dH_detJ_dy, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
+  //cudaMalloc((void **)&m_dH_detJ_dz, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
+  malloc_t (m_H,          double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  
+  cout <<"setting deriv allocation size of "<<m_dim * m_nodxelem * m_elem_count * m_gp_count<<endl;
+  cout <<"mdim"<<m_dim << " "<<m_nodxelem<<" "<< m_elem_count <<" "<<m_gp_count<<endl;
+  malloc_t (m_dH_detJ_dx,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  malloc_t (m_dH_detJ_dy,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  malloc_t (m_dH_detJ_dz,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  
+
+  malloc_t(m_detJ,  double, m_elem_count * m_gp_count );    
+  
+  malloc_t(m_nodxelem_e,  int, m_elem_count);
+  
+  malloc_t(m_ematm, double, m_nodxelem * m_nodxelem * m_elem_count); //Elemental mas matrices
+
+  //cudaMalloc((void **)&m_detJ,  m_elem_count * m_gp_count * sizeof (double)); 
+
+  //cudaMalloc((void **)&m_str_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  //cudaMalloc((void **)&m_rot_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  //cudaMalloc((void **)&m_sigma,     m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  malloc_t(m_str_rate,  double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_rot_rate,  double, 6 * m_elem_count * m_gp_count );     
+  malloc_t(m_sigma,     double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_tau,       double, 6 * m_elem_count * m_gp_count );   
+  
+  ///// ELEMENTAL VALUES
+  // cudaMalloc((void **)&p,         m_elem_count * m_gp_count * sizeof (double)); 
+  // cudaMalloc((void **)&rho,       m_elem_count * m_gp_count * sizeof (double)); 
+  // cudaMalloc((void **)&rho_0,     m_elem_count * m_gp_count * sizeof (double)); 
+  malloc_t(p,      double, m_elem_count * m_gp_count ); 
+  malloc_t(rho,    double, m_elem_count * m_gp_count );   
+  malloc_t(rho_0,  double, m_elem_count * m_gp_count ); 
+  
+  malloc_t(vol,      double, m_elem_count); 
+  malloc_t(vol_0,    double, m_elem_count); 
+  
+  // cudaMalloc((void **)&vol,       m_elem_count * sizeof (double)); 
+  // cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
+  
+  // USEFUL FOR TETRA Average Nodal Pressure 
+  malloc_t(m_voln,      double, node_count); 
+  malloc_t(m_vol_0n,    double, node_count); 
+
+  malloc_t(m_f_elem,    double, m_elem_count * m_dim * m_nodxelem);   
+  malloc_t(m_f_elem_hg, double, m_elem_count * m_dim * m_nodxelem);   
+  //cudaMalloc((void **)&m_f_elem,  m_elem_count * m_dim * m_nodxelem * sizeof (double)); 
+
+  malloc_t(mat,    Material_*, m_elem_count);   
+  //cudaMalloc((void**)&mat,    m_elem_count * sizeof(Material_ *));
+  
+  // AXISYMM
+  malloc_t (m_radius, double, m_elem_count * m_gp_count);
+  
+  
+  malloc_t(m_jacob, Matrix, m_elem_count );
+    
+  #ifdef CUDA_BUILD
+	report_gpu_mem_();
+  #endif
+
+  x_h = new double [m_dim*m_node_count];
+  u_h = new double [m_dim*m_node_count];
+  
+  ////// CONTACT//////////////////////////////////////////////
+  malloc_t(ext_nodes, bool, m_node_count);
+  malloc_t(contforce, double,node_count*m_dim);
+  
+  m_contsurf_count = 0;
+
+  //plastic
+  malloc_t (pl_strain, double, m_elem_count * m_gp_count);
+  malloc_t (sigma_y, double, m_elem_count * m_gp_count);  
+}
+
+//USED FOR PARALLEL ASSEMBLY AND AVERAGING
+void Domain_d::setNodElem(int *elnod_h){
+
+
+     int *nodel_count_h  = new int [m_node_count];
+     int *nodel_offset_h = new int [m_node_count];
+    for (int n=0;n<m_node_count;n++){
+      nodel_count_h[n] = 0;
+    }
+    
+    //Must initialize nodel_count_h
+  int offset = 0;
+  for (int e=0;e<m_elem_count;e++){
+    //cout << "Element "<<e<<endl;
+    for (int ne=0;ne<m_nodxelem;ne++){
+      if (elnod_h[offset+ne]<m_node_count){
+        //if (elnod_h[offset+ne]==3)
+          //cout << "Node 3 shared element "<< e<<endl;
+        nodel_count_h[elnod_h[offset+ne]]++;
+      }else 
+        cout << "ERROR setting node element, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<"> Node Count "<<endl;
+    }
+    offset+=m_nodxelem;
+  }
+  cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
+  ///// FOR DIFFERENT ELMENT NODE COUNT
+  int *m_nodxelem_eh  = new int [m_elem_count];
+  int *m_elnodoffset_h = new int [m_elem_count];
+  
+
+  
+  //cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));	
+  malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
+  cout << "COPYING "<<m_elem_count * m_nodxelem<< " element nodes "<<endl;
+  memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem); 
+
+  cout << "Done"<<endl;
+  
+  //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
+  int nodel_tot = 0;
+  for (int n=0;n<m_node_count;n++){
+    nodel_offset_h[n] = nodel_tot;
+    nodel_tot        += nodel_count_h[n];
+    //cout << "NodEL tot " << nodel_tot<<endl;
+    //cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+
+  }
+  cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
+  int *nodel_h       = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT
+  int *nodel_loc_h   = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT    
+  
+  //Reset nodelcount (is incremented latere)
+  for (int n=0;n<m_node_count;n++)  nodel_count_h[n] = 0;    
+  
+  //ALLOCATE NODEL, WHICH ARE ELEMEENTS SHARED BY A NODE
+  //THIS IS FOR MORE EFFICIENT ELEMENTFORCES  ASSEMBLY
+  //
+  for (int e=0;e<m_elem_count;e++){
+    int offset = m_nodxelem * e;
+    for (int ne=0;ne<m_nodxelem;ne++){
+      int n = elnod_h[offset+ne];
+      if (nodel_offset_h[n] + nodel_count_h[n] > nodel_tot)
+        cout << "ERRROR in node index,index "<<nodel_offset_h[n] + nodel_count_h[n]<<", node "<<n<<"element "<<e<<endl;
+      nodel_h     [nodel_offset_h[n] + nodel_count_h[n]] = e;
+      nodel_loc_h [nodel_offset_h[n] + nodel_count_h[n]] = ne;
+      
+      nodel_count_h[n]++;
+    }//nod x elem 
+  }
+  
+  malloc_t (m_nodel,        int,nodel_tot);
+  malloc_t (m_nodel_loc,    int,nodel_tot);
+  
+  malloc_t (m_nodel_offset, int, m_node_count);
+  malloc_t (m_nodel_count,  int, m_node_count);
+  
+  //THIS IS ONLY FOR COMPLETENESS IN CASE OF CPU, SHOULD BE BETTER TO WRITE ON FINALL ARRAY
+  memcpy_t(this->m_nodel,         nodel_h,        sizeof(int) * nodel_tot); 
+  memcpy_t(this->m_nodel_loc,     nodel_loc_h,    sizeof(int) * nodel_tot);
+   
+  memcpy_t(this->m_nodel_offset,  nodel_offset_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+  memcpy_t(this->m_nodel_count,    nodel_count_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+    
+  /*
+  // ///// TESTING
+  cout << endl<<endl;
+  for (int n=0;n<m_node_count;n++){
+    cout << "M node offset:"<<nodel_offset_h[n]<<endl;
+    cout << "Node  "<< n << " Elements ("<< nodel_count_h[n]<<")"<<endl;
+    for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_h[nodel_offset_h[n]+ne]<<", ";
+    cout << endl;
+    cout << "Node  "<< n << " Elements Internal Node"<<endl;
+    for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]+ne]<<", ";
+    cout << endl;
+  }
+  */
+  
+  cout << "Node Elemets set. "<<endl;
+
+  
+  delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
+
+}
 
 void Domain_d::Free(){
   free_t (x);
