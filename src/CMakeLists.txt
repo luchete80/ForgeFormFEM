@@ -47,7 +47,7 @@ set (SOURCES
                          #Matrices.C
                          #Mechanical.C
                          Mesh.C
-                         #Matrices.C
+                         Matrices.C
                          Solver.C
                          #input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp

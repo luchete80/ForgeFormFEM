@@ -36,6 +36,9 @@ void host_ Domain_d::Solve(){
   // }
 
   calcElemJAndDerivatives();
+  
+  //IMPLICIT 
+  CalcMaterialStiffElementMatrix();
 
   //CalcElemInitialVol(); //ALSO CALC VOL
 

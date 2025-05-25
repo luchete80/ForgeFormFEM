@@ -248,6 +248,10 @@ public:
   void setRemeshInterval(int i) {m_remesh_interval = i;}
   void Free();
   //--------------------------------------------------------------------------------------------------------------------------------
+  void CalcMaterialStiffElementMatrix();
+  
+  
+  //--------------------------------------------------------------------------------------------------------------------------------
 
   
 protected:
@@ -362,6 +366,12 @@ protected:
   int ext_nodes_count;
   double *contforce; 
   bool contact;
+  
+  //////////////////////////////// IMPLICIT THINGS
+  Matrix **m_Kmat;   //MATERIAL PART OF 
+  
+  
+  
 };
 
 
