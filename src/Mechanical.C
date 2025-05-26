@@ -1,0 +1,4 @@
+//CALCULATE INTERNAL FORCES
+// F INT BT sigma
+
+

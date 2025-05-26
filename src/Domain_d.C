@@ -438,7 +438,6 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   for (int e=0;e<m_elem_count;e++)
     m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
 
-
   
 }
 
