@@ -117,7 +117,7 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
   
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
-  
+  cout << "Domain Dimension: "<< m_dim<<endl;
 }
 
 dev_t void Domain_d::calcElemJAndDerivatives () {
