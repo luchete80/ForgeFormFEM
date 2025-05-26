@@ -16,7 +16,7 @@ namespace MetFEM{
 void host_ Domain_d::Solve(){
   WallTimer timer;
 
-  //AssignMatAddress();
+  AssignMatAddress();
 
   cout << "done"<<endl;
 

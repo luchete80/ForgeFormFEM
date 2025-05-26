@@ -53,6 +53,11 @@ void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     faceCount++;
 }
 
+void Domain_d::AssignMatAddress(){
+  par_loop(i, m_elem_count)
+    mat[i] = &materials[0];
+  
+}
 
 // Function to add all 6 faces of a hexahedron
 void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
@@ -646,6 +651,7 @@ void Domain_d::Free(){
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
 //    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
+    printf("Assigning Material\n");
     malloc_t(materials, Material_,1);
     memcpy_t(materials, material_h, 1 * sizeof(Material_));	
 }
