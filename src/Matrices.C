@@ -40,15 +40,56 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     D.Set(0,1, f*nu);                 D.Set(0,2, f*nu);
     D.Set(1,0, f*nu);                 D.Set(1,2, f*nu);
     D.Set(2,0, f*nu);D.Set(2,1, f*nu);
-    
+    for (int d=0;d<3;d++) D.Set(d,d,1.0-nu);
+    for (int d=3;d<6;d++) D.Set(d,d,(1.0-2.0*nu)/2.0);    
                 
     MatMul(MatMul(BT,D),Bmat, m_Kmat[e]);
-    printf("K ELEM\n");
-    m_Kmat[e]->Print();
+    //printf("K ELEM\n");
+    //m_Kmat[e]->Print();
   }//element
   
 }
 
+dev_t void Domain_d::assemblyForces(){
 
+    //if ()
+  //par_loop(n, m_node_count){
+  for (int n=0;n<m_node_count;n++){
+    for (int d=0;d<m_dim;d++)
+      m_fi[n*m_dim + d] = 0.0;
+      
+      //printf("--------\n");    
+      for (int e=0; e<m_nodel_count[n];e++) {
+        int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+        int offset  = eglob * m_nodxelem * m_dim;
+
+        for (int d=0;d<m_dim;d++){
+          //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+          //if (n==9)
+          //  printf("%6e %6e %6e\n",m_fi[n*m_dim],m_f_elem[n*m_dim+1],m_f_elem[n*m_dim+2]);
+          m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
+        }
+          if(m_thermal){
+            T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
+	  }
+      }
+      if (m_gp_count == 1 ) {  
+        for (int e=0; e<m_nodel_count[n];e++) {
+          int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+          int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+          int offset  = eglob * m_nodxelem * m_dim;
+          ////printf("glob %d, loc %d \n",n,ne);
+          for (int d=0;d<m_dim;d++){
+            //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+            m_fi[n*m_dim + d] -= m_f_elem_hg [offset + ne*m_dim + d];
+          }
+        }      
+      }
+      // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+    } // element
+
+
+}//assemblyForcesNonLock
 
 };
