@@ -2,7 +2,7 @@
 #include "Matrix.h"
 
 #include <iostream>
-
+#include "Tensor.h"
 
 using namespace std;
 
@@ -15,29 +15,30 @@ namespace MetFEM{
 
 /// ALMANSI
 //// e = 1/2(I-FT F-1)
+
  //////[dN1/dx    0      0 ]
      //[   0   dN1/dy    0]
      //[   0      0    dN1/dx ]    
      //[   dNdy  dN/dx    0 ]    
 
-Matrix Domain_d::getBArrange(int &e){
+// Matrix Domain_d::getB(int &e){
   
-      for (int i=0;i<m_nodxelem;i++)
-      for (int d=0;d<m_dim;d++)
-        Bmat.Set(d, m_dim*i+d, getDerivative(e, 0, d, m_dim*i));
+      // for (int i=0;i<m_nodxelem;i++)
+      // for (int d=0;d<m_dim;d++)
+        // Bmat.Set(d, m_dim*i+d, getDerivative(e, 0, d, m_dim*i));
       
-    if (m_dim==3){
-      for (int i=0;i<m_nodxelem;i++)
-        for (int d=0;d<m_dim;d++){
-          int k = d+1;if (k==m_dim) k = 0;
-            // d/dy d/dx 0   
-            printf("i %d j %d der %d\n",m_dim+d,m_dim*i+d, k);
-            printf("i %d j %d der %d\n",m_dim+d,m_dim*i+k, d);
-            Bmat.Set(m_dim+d, m_dim*i+d, getDerivative(e, 0, k, i));
-            Bmat.Set(m_dim+d, m_dim*i+k,getDerivative(e, 0, d, i));
-        }
-    }
-}
+    // if (m_dim==3){
+      // for (int i=0;i<m_nodxelem;i++)
+        // for (int d=0;d<m_dim;d++){
+          // int k = d+1;if (k==m_dim) k = 0;
+            // // d/dy d/dx 0   
+            // printf("i %d j %d der %d\n",m_dim+d,m_dim*i+d, k);
+            // printf("i %d j %d der %d\n",m_dim+d,m_dim*i+k, d);
+            // Bmat.Set(m_dim+d, m_dim*i+d, getDerivative(e, 0, k, i));
+            // Bmat.Set(m_dim+d, m_dim*i+k,getDerivative(e, 0, d, i));
+        // }
+    // }
+// }
 
      
 void Domain_d::CalcMaterialStiffElementMatrix(){
@@ -128,7 +129,7 @@ dev_t void Domain_d::CalcGeomStiffElementMatrix(){
 // Sigma[0:3, 6:9] = sigma[0, 2] * np.eye(3)  # σxz block
 // # ... (repeat for σyy, σyz, σzz, ensuring symmetry)
 
-  int offset_s = e * m_gp_count + gp;   //SCALAR
+  int offset_s = e;   //SCALAR
   int offset_t = offset_s * 6 ; //SYM TENSOR
   tensor3 sigma;
   sigma = FromFlatSym(m_sigma, offset_t );

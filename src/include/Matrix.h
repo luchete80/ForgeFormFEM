@@ -146,6 +146,37 @@ public:
 	double *m_data;
   int m_row, m_col, m_dim;
 
+
+__spec Matrix& operator+=(Matrix& other) {
+    // Check dimensions match
+    if (m_row != other.m_row || m_col != other.m_col) {
+        printf("Matrix dimension mismatch in operator+=\n");
+        return *this; // or handle error properly
+    }
+    for (int i = 0; i < m_row * m_col; ++i) {
+        m_data[i] += other.m_data[i];
+    }
+    return *this;
+}
+
+__spec Matrix& operator+=(Matrix other) {
+    // Check dimensions match
+    if (m_row != other.m_row || m_col != other.m_col) {
+        printf("Matrix dimension mismatch in operator+=\n");
+        return *this; // or handle error properly
+    }
+    for (int i = 0; i < m_row * m_col; ++i) {
+        m_data[i] += other.m_data[i];
+    }
+    return *this;
+}
+
+// Matrix& Matrix::operator+=(const Matrix& other) {
+    // // your implementation here
+    // return *this;
+// }
+
+
 }; //MATRIX
 
 

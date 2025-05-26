@@ -5,6 +5,8 @@
 #include "Mesh.h"
 #include "WallTimer.h"
 
+#include "Matrix.h"
+
 // #ifdef BUILD_REMESH
 // #include "ReMesher.h"
 // #endif
@@ -65,51 +67,75 @@ void host_ Domain_d::Solve(){
   if (step_count % 10000 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
 
-  // /////AFTER J AND DERIVATIVES
-  // if ( step_count % m_remesh_interval == 0 && step_count  >0 )
-  // //if (0) //debug
-  // {
-    // //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
-    // cout << "step_count "<<step_count<<endl;
-    // double max=0.0;
-    // int emin;
-    // for (int e=0;e<m_elem_count;e++)
-      // if (pl_strain[e]>max){
-        // max = pl_strain[e];
-        // emin = e;
-      // }
-    
-  // //////////////////////////// IF REMESH
-      // //#########################################################
-      // //cout << "REMESHING "<<endl;
-      // ReMesher remesh(this);
-      // remesh.m_type = MMG;
-      // //remesh.Generate_omegah();
-      // remesh.Generate_mmg();
-      // remesh.WriteDomain(); 
-      // //cout << "Step "<<step_count<<endl;
-      // //parallel_for ()
 
-      // //TO MODIFY
-      // double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      // //SetDT(0.1*dt);
-      // //dt *=0.4;
 
-      // //double dt = 0.800e-5;
-      // //cout << "New Time Step "<<dt<<endl;
-      // //SetDT(dt); 
-      // calcMinEdgeLength();
-      // double minl = getMinLength();
-      // double dt = 0.05*minl/(mat_cs);
-      // cout << "min length "<<minl<<", dt "<<dt<<endl;
-      // //cout << "DONE REMESH"<<endl;
-      // std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      // VTKWriter writer3(this, s.c_str());
-      // writer3.writeFile();
-      // remesh_ = true;
+    // for each element:
+    // # 1. Get current nodal positions x = X + u
+    // x = get_current_coords(element)     # 4 x 3
+    // u = get_current_displacement(element)  # 4 x 3
 
-      // //#########################################################
-  // //////////////////////////// IF REMESH
+    // # 2. Compute volume (Ve) and shape function gradients in current config
+    // gradN, Ve = compute_gradN_and_volume(x)  # gradN: list of ∇Na (3 x 1 each)
+
+    // # 3. Compute deformation gradient F
+    // F = np.zeros((3,3))
+    par_loop(e, m_elem_count){
+      Matrix F(m_dim,m_dim); //DEFORMATION GRADIENT
+      Matrix X(m_dim,1);
+      Matrix gradN(1,m_dim);
+      
+      for (int n=0;n<m_nodxelem;n++){
+        for (int d=0;d<m_dim;d++){
+          X.Set(d,0,x[e*m_nodxelem+d]);
+          gradN.Set(0,d,getDerivative(e, 0, d, n));
+        }
+        F += MatMul(X,gradN);
+        
+      }
+    }
+    // for a in range(4):
+        // F += np.outer(x[a], gradN[a])   # F = sum_a (x_a ⊗ ∇N_a)
+
+    // # 4. Compute Almansi strain:
+    // C = F.T @ F                      # Right Cauchy-Green (not used in UL)
+    // b = F @ F.T                      # Left Cauchy-Green
+    // e_almansi = 0.5 * (np.eye(3) - np.linalg.inv(b))
+
+    // # 5. Compute stress from strain (if elastic) or plastic correction
+    // sigma = constitutive_model(F, element.state_vars)   # returns Cauchy stress
+
+    // # 6. Build B-matrix (B_mat) for material stiffness
+    // B_mat = np.zeros((6, 12))   # 6 strain comp x 12 DOF (3 per node)
+    // for a in range(4):
+        // dN = gradN[a]  # 3x1
+        // B_mat[:, 3*a:3*a+3] = [
+            // [dN[0],     0,     0],
+            // [0,     dN[1],     0],
+            // [0,         0, dN[2]],
+            // [dN[1], dN[0],     0],
+            // [dN[2],     0, dN[0]],
+            // [0,     dN[2], dN[1]]
+        // ]
+
+    // # 7. Compute internal force vector
+    // fint = Ve * B_mat.T @ stress_to_voigt(sigma)
+
+    // # 8. Material stiffness Kmat
+    // D_tangent = compute_material_tangent(F, element.state_vars)
+    // Kmat = Ve * B_mat.T @ D_tangent @ B_mat
+
+    // # 9. Geometric stiffness Kgeo
+    // Kgeo = np.zeros((12, 12))
+    // for a in range(4):
+        // for b in range(4):
+            // Kab = gradN[a].T @ sigma @ gradN[b] * Ve
+            // Kgeo[3*a:3*a+3, 3*b:3*b+3] += Kab * np.eye(3)
+
+    // # 10. Assemble fint, Kmat, Kgeo into global system
+    // assemble_global(fint, Kmat + Kgeo, element)
+
+
+
 
 
   cout << "Writing output "<<endl;

@@ -369,9 +369,10 @@ protected:
   
   //////////////////////////////// IMPLICIT THINGS
   Matrix **m_Kmat;   //MATERIAL PART OF 
-
   Matrix **m_Kgeo;   //MATERIAL PART OF   
   
+  //// DEFORMATION GRADIENT
+  Matrix **m_Fel;    //def
   
 };
 
