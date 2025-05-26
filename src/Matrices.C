@@ -108,6 +108,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
 
 //// K GEO - B MATRIX APPROACH
 dev_t void Domain_d::CalcGeomStiffElementMatrix(){
+  
+  par_loop(e, m_elem_count){
    //# Insert Kab into 12x12 Kgeo_local at block [a][b]
   Matrix Bgeo(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?  
 
@@ -125,6 +127,11 @@ dev_t void Domain_d::CalcGeomStiffElementMatrix(){
 // Sigma[0:3, 3:6] = sigma[0, 1] * np.eye(3)  # σxy block
 // Sigma[0:3, 6:9] = sigma[0, 2] * np.eye(3)  # σxz block
 // # ... (repeat for σyy, σyz, σzz, ensuring symmetry)
+
+  int offset_s = e * m_gp_count + gp;   //SCALAR
+  int offset_t = offset_s * 6 ; //SYM TENSOR
+  tensor3 sigma;
+  sigma = FromFlatSym(m_sigma, offset_t );
 
 // # Step 2: Build B_geo (6x12 matrix)
 // B_geo = np.zeros((6, 12))
@@ -147,6 +154,8 @@ dev_t void Domain_d::CalcGeomStiffElementMatrix(){
 // # Step 3: Compute K_geo (12x12)
 // K_geo = Ve * B_geo.T @ Sigma @ B_geo
 
+  }//ELEMENT 
+}
 
 ////// K GEOMETRIC
 ///Kij_GEO = bTi sigma bj I3x3 dV
