@@ -91,6 +91,30 @@ void PETSC_KSP_Solver<number>::PETSC_Init()
 	int nVars=3;
 
 
+//	// Calculate space necessary for matrix memory allocation
+//	for (int cellit=grid[gid].cell.begin();cit!=grid[gid].cell.end();cit++) {
+//		nextCellCount=0;
+//		for (it=(*cit).faces.begin();it!=(*cit).faces.end();it++) {
+//			if (grid[gid].face[*it].bc==INTERNAL_FACE) {
+//				nextCellCount++;
+//			}
+//		}
+//		for (int i=0;i<nVars;++i) {
+//			diagonal_nonzeros.push_back( (nextCellCount+1)*nVars);
+//			off_diagonal_nonzeros.push_back( ((*cit).ghosts.size())*nVars);
+//		}
+//	}
+//
+//	MatCreateMPIAIJ(
+//					PETSC_COMM_WORLD,
+//					grid[gid].cellCount*nVars,
+//					grid[gid].cellCount*nVars,
+//					grid[gid].globalCellCount*nVars,
+//					grid[gid].globalCellCount*nVars,
+//					0,&diagonal_nonzeros[0],
+//					0,&off_diagonal_nonzeros[0],
+//					&impOP);
+
     //  MatCreateSeqAIJ(MPI_Comm comm,PetscInt m,PetscInt n,PetscInt nz,const PetscInt nnz[],Mat *A)
 //    	comm 	- MPI communicator, set to PETSC_COMM_SELF
 //	m 	- number of rows
@@ -597,3 +621,5 @@ void Solve(EqnSystem <T> &TEqn)
 }
 
 } //FluxSol
+
+#include "PETSC_Solver.inst"

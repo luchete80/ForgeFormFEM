@@ -28,16 +28,17 @@
 #define _MATRIX_H_
 
 #include <stdarg.h>
-
-#ifdef CUDA_BUILD
 #include "defs.h"
 
+#ifdef CUDA_BUILD
 
 #include <cuda.h>
 #define __spec __device__ inline
 #else 
 #define __spec inline
+#include <stdio.h>
 #endif
+
 
 //template <int ROWS, int COLS>
 class Matrix {
