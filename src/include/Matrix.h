@@ -402,11 +402,11 @@ __spec Matrix Matrix::Inv(){
     
     cofactor->Transpose();
     //printf ("COFACTOR: \n");
-    cofactor->Print();
+    //cofactor->Print();
     double f = 1.0/this->calcDet();
     invA = cofactor->Mul(f);
     //printf("INVA\n");
-    invA.Print();
+    //invA.Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
     delete cofactor;
   }
