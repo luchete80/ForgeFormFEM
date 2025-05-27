@@ -27,7 +27,7 @@
 #ifndef TENSOR_IMPL
 #define TENSOR_IMPL
 
-#include "tensor.h"
+#include "Tensor.h"
 #if CUDA_BUILD
 #include "vector_math.h"
 

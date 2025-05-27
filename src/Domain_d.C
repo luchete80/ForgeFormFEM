@@ -8,7 +8,7 @@
 #include <iostream>
 
 
-#include "tensor3.C"
+#include "Tensor3.C"
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
 

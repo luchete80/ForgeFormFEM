@@ -57,6 +57,10 @@ public:
         
   for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
+  //~ void setIdentity(){
+    //~ for (int r=0;r<m_row;r++){
+        //~ if (r<m_col)Set(r,r,1.0);
+    //~ }
   
   inline double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
@@ -171,6 +175,20 @@ __spec Matrix& operator+=(Matrix other) {
     return *this;
 }
 
+__spec Matrix& operator-(Matrix other) {
+    Matrix ret(*this);
+    // Check dimensions match
+    if (m_row != other.m_row || m_col != other.m_col) {
+        printf("Matrix dimension mismatch in operator+=\n");
+        return *this; // or handle error properly
+    }
+    for (int i = 0; i < m_row * m_col; ++i) {
+        ret.m_data[i] -= other.m_data[i];
+    }
+    return ret;
+}
+
+
 // Matrix& Matrix::operator+=(const Matrix& other) {
     // // your implementation here
     // return *this;
@@ -180,7 +198,13 @@ __spec Matrix& operator+=(Matrix other) {
 }; //MATRIX
 
 
-
+__spec Matrix Identity(const int &d){
+    Matrix ret (d,d);
+    for (int r=0;r<ret.m_row;r++){
+        ret.Set(r,r,1.0);
+    }
+    return ret;
+}
 //// OPERATION WITH MATRIX CREATION COULD PRODUCE MEM LEAKING
 __spec Matrix MatMul(Matrix &A, Matrix &B){
   Matrix ret(A.m_row,B.m_col);

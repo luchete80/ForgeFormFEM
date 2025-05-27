@@ -92,14 +92,18 @@ void host_ Domain_d::Solve(){
         F += MatMul(X,gradN);
         
       }
-    }
+    
     // for a in range(4):
         // F += np.outer(x[a], gradN[a])   # F = sum_a (x_a ⊗ ∇N_a)
 
     // # 4. Compute Almansi strain:
+    Matrix b(3,3); //CAUCHY Green
+    b = MatMul(F, F.Transpose());
     // C = F.T @ F                      # Right Cauchy-Green (not used in UL)
     // b = F @ F.T                      # Left Cauchy-Green
     // e_almansi = 0.5 * (np.eye(3) - np.linalg.inv(b))
+    Matrix e(3,3);
+    e = 0.5 * (Identity(3) - b.Inv());
 
     // # 5. Compute stress from strain (if elastic) or plastic correction
     // sigma = constitutive_model(F, element.state_vars)   # returns Cauchy stress
@@ -133,7 +137,8 @@ void host_ Domain_d::Solve(){
 
     // # 10. Assemble fint, Kmat, Kgeo into global system
     // assemble_global(fint, Kmat + Kgeo, element)
-
+    
+  }//ELEMENT LOOP
 
 
 

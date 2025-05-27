@@ -10,3 +10,5 @@ b.Set(2,0, 0);
 
 Matrix x = SolveLinearSystem(A, b);
 x.Print(); // Should print the solution
+
+// solution is [1,-1,-2]
