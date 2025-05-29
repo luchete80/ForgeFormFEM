@@ -61,10 +61,16 @@ class VTKWriter;
 class VTUWriter;
 class ReMesher;
 class ReMesher;
+class Solver;
+class Solver_Eigen;
+
 class Domain_d {
   friend class VTKWriter;
   friend class VTUWriter;
   friend class ReMesher;
+  friend class Solver;
+  friend class Solver_Eigen;
+  
 public:
   Domain_d (std::string);
   Domain_d (){
@@ -252,7 +258,7 @@ public:
   //--------------------------------------------------------------------------------------------------------------------------------
   void CalcMaterialStiffElementMatrix();
   void CalcGeomStiffElementMatrix();  
-  void assemblyGlobalSolverMatrix();
+
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
@@ -375,6 +381,9 @@ protected:
   
   //// DEFORMATION GRADIENT
   Matrix **m_Fel;    //def
+  
+  
+  Solver* m_solver;
   
 };
 

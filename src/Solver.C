@@ -192,7 +192,9 @@ void host_ Domain_d::ElasticSolve(){
     
   }
   
-  Solver_Eigen solver;
+  Solver_Eigen *solver = new Solver_Eigen();
+  m_solver = solver;
+  m_solver->setDomain(this);
   
   
   }//ELASTICSOLVE

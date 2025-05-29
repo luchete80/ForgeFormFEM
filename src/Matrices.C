@@ -245,39 +245,6 @@ dev_t void Domain_d::assemblyForces(){
 //~ }
 
 
-
-void Domain_d::assemblyGlobalSolverMatrix() {
-    // Triplet format: (row, col, value)
-    std::vector<std::tuple<int, int, double>> triplets;
-
-    for (int e = 0; e < m_elem_count; ++e) {
-        const Matrix& Ke = *(m_Kmat[e]);
-
-        std::vector<int> global_dofs(m_nodxelem * m_dim);
-        for (int a = 0; a < m_nodxelem; ++a) {
-            int node = getElemNode(e, a);
-            for (int i = 0; i < m_dim; ++i) {
-                global_dofs[a * m_dim + i] = node * m_dim + i;
-            }
-        }
-
-        // Collect non-zero entries
-        for (int i = 0; i < global_dofs.size(); ++i) {
-            int I = global_dofs[i];
-            for (int j = 0; j < global_dofs.size(); ++j) {
-                int J = global_dofs[j];
-                //~ if (Ke(i, j) != 0.0) {  // Skip zeros
-                    //~ triplets.emplace_back(I, J, Ke(i, j));
-                //~ }
-            }
-        }
-    }
-
-    // Build sparse matrix (e.g., Eigen::SparseMatrix)
-    //sparse_K.setFromTriplets(triplets.begin(), triplets.end());
-}
-
-
   //~ std::vector<std::unordered_set<int>> dof_neighbors(n_nodes * m_dim);
 
   //~ // Loop over all elements
@@ -302,6 +269,32 @@ void Domain_d::assemblyGlobalSolverMatrix() {
 //~ int nnz = 0;
 //~ for (const auto& neighbors : dof_neighbors) {
     //~ nnz += neighbors.size();  // Number of unique DOFs connected to this DOF
+//~ }
+
+
+//~ void allocateSolverSizes(){
+  //~ std::vector<int> nnz_per_row(num_dofs, 0);
+
+  //~ // Loop over elements
+  //~ for (int e = 0; e < m_elem_count; ++e) {
+      //~ std::vector<int> global_dofs(m_nodxelem * m_dim);
+      //~ for (int a = 0; a < m_nodxelem; ++a) {
+          //~ int node = getElemNode(e, a);
+          //~ for (int i = 0; i < m_dim; ++i) {
+              //~ global_dofs[a * m_dim + i] = node * m_dim + i;
+          //~ }
+      //~ }
+
+      //~ for (int i = 0; i < global_dofs.size(); ++i) {
+          //~ int row = global_dofs[i];
+          //~ for (int j = 0; j < global_dofs.size(); ++j) {
+              //~ int col = global_dofs[j];
+              //~ if (col != row) nnz_per_row[row]++;
+          //~ }
+          //~ nnz_per_row[row]++; // Diagonal
+      //~ }
+  //~ }
+
 //~ }
 
 };

@@ -31,6 +31,9 @@
 #include <time.h>
 
 
+class Domain_d;
+
+
 namespace MetFEM{
 
 class Solver{
@@ -47,8 +50,10 @@ public:
   Solver(const int &d):
 	m_dim(d)
 	{}
-  
+  void setDomain(Domain_d *d){m_dom = d;}  
   virtual int Solve(){}
+  
+  virtual void assemblyGlobalMatrix(){}
   
   virtual void Allocate(const int &dim){
     m_dim = dim;
@@ -68,6 +73,8 @@ protected:
   double rtol,abstol;
 	int m_dim;		//CONST?
 	int maxits;
+  
+  Domain_d *m_dom;
 
 };
 
