@@ -339,8 +339,10 @@ int main(int argc, char **argv) {
     
 
   }
-
-	dom_d->Solve ();
+  
+  ////// ELASTIC TEST
+  dom_d->ElasticSolve();
+	//dom_d->Solve ();
   
   
 	cout << "Program ended."<<endl;

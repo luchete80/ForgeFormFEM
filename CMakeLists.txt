@@ -30,6 +30,9 @@ include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
 MESSAGE ("CHECKING REMESH")
 
+##### IF EIGEN
+include_directories(${EIGEN_INC_DIR})
+message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
 if (BUILD_MMG)
   MESSAGE ("ADDING MMG")

@@ -23,59 +23,60 @@
 #ifndef _SOLVER_H
 #define _SOLVER_H
 
-#include "./Type/Vec3d.h"
-#include "./Field/Field.h"
+//#include "./Type/Vec3d.h"
 
-#include "SistEcuac.h"
 
-//Sparse libraries
-//#include "laspack.h"
-//#include "./Nastran/Varios.h"
-#include "Utils.h"
+//#include "Utils.h"
 
 #include <time.h>
 
 
-namespace FluxSol{
+namespace MetFEM{
 
-template <typename number>
 class Solver{
+public:
 
-
-    protected:
-    Vec3D vtol;     //Tolerancia de velocidades
-    double ptol;    //Tolerancia de presiones
-    double maxiter; //maxximo numero de iteraciones
-    double actualiter;  //iteracion actual
-
-
-	number rtol,abstol;
-	const int matdim;		//CONST?
-	int maxits;
-
-
-    public:
-
-    //ES VIRTUAL!!
-    //Ojo que si no la defino, si no coloco nada y solo la declaro tengo problemas con la vtable en compilacion
-    virtual void Resolver_Iteracion(){};
-
-	Solver<number>():matdim(0)
+	//Solver<number>():matdim(0)
+  Solver():m_dim(0)
 	{
 	    maxiter=100;
-        ptol=1.0e-3;
-        vtol=1.e-03;    //Todos los valores iguales
+      ptol=1.0e-3;
+      //vtol=1.e-03;    //Todos los valores iguales
 	}
-	Solver<number>(const int &d):
-	matdim(d)
+	//Solver<number>(const int &d):
+  Solver(const int &d):
+	m_dim(d)
 	{}
+  
+  virtual int Solve(){}
+  
+  virtual void Allocate(const int &dim){
+    m_dim = dim;
+  }
 
+
+  virtual ~Solver(){}
+
+protected:
+  //Vec3D vtol;     //
+  double ptol;    //
+  double maxiter; //
+  double actualiter;  //
+
+
+	//number rtol,abstol;
+  double rtol,abstol;
+	int m_dim;		//CONST?
+	int maxits;
 
 };
 
-	template <typename T>
-    void Solve(EqnSystem <T> &);
+	//~ template <typename T>
+    //~ void Solve(EqnSystem <T> &);
 
+	//~ template <typename T>
+    //~ void Solve(EqnSystem <T> &);
+    
 }
 
 #endif

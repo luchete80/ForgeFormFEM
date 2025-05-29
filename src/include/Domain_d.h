@@ -230,6 +230,7 @@ public:
   
   
 	void Solve();
+	void ElasticSolve();
   void setdtOut(const double &t){m_dtout=t;}
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}
@@ -247,10 +248,11 @@ public:
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
   void Free();
+  // IMPLICIT FUNCTIONS
   //--------------------------------------------------------------------------------------------------------------------------------
   void CalcMaterialStiffElementMatrix();
   void CalcGeomStiffElementMatrix();  
-  
+  void assemblyGlobalSolverMatrix();
   //--------------------------------------------------------------------------------------------------------------------------------
 
   

@@ -7,6 +7,8 @@
 
 #include "Matrix.h"
 
+#include "Solver_Eigen.h"
+
 // #ifdef BUILD_REMESH
 // #include "ReMesher.h"
 // #endif
@@ -39,12 +41,15 @@ void host_ Domain_d::Solve(){
 
   calcElemJAndDerivatives();
   
+  //FOR PRESSURE ANP
+  //CalcElemInitialVol(); //ALSO CALC VOL
+
+  CalcElemVol();
+
   //IMPLICIT 
   CalcMaterialStiffElementMatrix();
 
-  //CalcElemInitialVol(); //ALSO CALC VOL
 
-  //CalcElemVol();
   //printf("calc dens\n");
   //calcElemDensity();
 
@@ -67,6 +72,8 @@ void host_ Domain_d::Solve(){
   if (step_count % 10000 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
 
+  
+  
 
 
     // for each element:
@@ -93,8 +100,8 @@ void host_ Domain_d::Solve(){
         
       }
     
-    // for a in range(4):
-        // F += np.outer(x[a], gradN[a])   # F = sum_a (x_a ⊗ ∇N_a)
+    //~ // for a in range(4):
+        //~ // F += np.outer(x[a], gradN[a])   # F = sum_a (x_a ⊗ ∇N_a)
 
     // # 4. Compute Almansi strain:
     Matrix b(3,3); //CAUCHY Green
@@ -103,9 +110,9 @@ void host_ Domain_d::Solve(){
     // b = F @ F.T                      # Left Cauchy-Green
     // e_almansi = 0.5 * (np.eye(3) - np.linalg.inv(b))
     Matrix e(3,3);
-    e = 0.5 * (Identity(3) - b.Inv());
+    //e = 0.5 * (Identity(3) - b.Inv()); //Crash
     
-    CalcStressStrain(dt);
+    //CalcStressStrain(dt); /////Setting sigma
     
     // # 5. Compute stress from strain (if elastic) or plastic correction
     // sigma = constitutive_model(F, element.state_vars)   # returns Cauchy stress
@@ -169,5 +176,25 @@ void host_ Domain_d::Solve(){
   // std::cout << "Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   
   }//SOLVE
+  
+  
+void host_ Domain_d::ElasticSolve(){
+  WallTimer timer;
+
+  AssignMatAddress();
+  calcElemJAndDerivatives();
+  CalcElemVol();
+
+  //IMPLICIT 
+  CalcMaterialStiffElementMatrix();
+
+  par_loop(e, m_elem_count){
+    
+  }
+  
+  Solver_Eigen solver;
+  
+  
+  }//ELASTICSOLVE
     
 };

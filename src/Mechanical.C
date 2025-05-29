@@ -83,6 +83,28 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 
 }
 
+//To calculate before elemet Jacobian calc
+dev_t void Domain_d::CalcElemVol(){
+  par_loop(e,m_elem_count){
+    double w;
+    //TODO: CHANGE WEIGHT TO ARRAY
+    if (m_gp_count == 1) {
+      if (m_dim == 2) w = 4;//w = pow(2.0, m_dim);
+      if (m_dim == 3)     
+        if      (m_nodxelem == 4)  w = 1.0/6.0;
+        else if (m_nodxelem == 8)  w = 8.0;
+    } else                  w = 1.0;
+    
+    int offset = m_gp_count * e;
+    vol[e] = 0.0;
+    for (int gp=0;gp<m_gp_count;gp++){
+      vol[e] += m_detJ[offset] * w;
+    }  
+    //if (e<10)
+    //printf("Element %d Vol %f, det %f\n",e,vol[e],m_detJ[offset]);  
+  }//el
+}
+
 
 
 };

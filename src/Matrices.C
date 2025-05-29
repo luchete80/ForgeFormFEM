@@ -2,6 +2,8 @@
 #include "Matrix.h"
 
 #include <iostream>
+#include <unordered_map>  // For triplet storage
+
 #include "Tensor.h"
 
 using namespace std;
@@ -40,30 +42,32 @@ namespace MetFEM{
     // }
 // }
 
+///// USES VOL OR DETERMINANT
      
 void Domain_d::CalcMaterialStiffElementMatrix(){
   par_loop(e, m_elem_count){
     /// TODO: CHANGE FOR DIM = 2
-    Matrix Bmat(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
-    for (int i=0;i<m_nodxelem;i++)
-      for (int d=0;d<m_dim;d++)
-        Bmat.Set(d, m_dim*i+d, getDerivative(e, 0, d, m_dim*i));
-      
-    if (m_dim==3){
-      for (int i=0;i<m_nodxelem;i++)
-        for (int d=0;d<m_dim;d++){
-          int k = d+1;if (k==m_dim) k = 0;
-            // d/dy d/dx 0   
-            printf("i %d j %d der %d\n",m_dim+d,m_dim*i+d, k);
-            printf("i %d j %d der %d\n",m_dim+d,m_dim*i+k, d);
-            Bmat.Set(m_dim+d, m_dim*i+d, getDerivative(e, 0, k, i));
-            Bmat.Set(m_dim+d, m_dim*i+k,getDerivative(e, 0, d, i));
-        }
+    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    for (int i=0;i<m_nodxelem;i++){
+      int base = m_dim * i;
+      double dN_dx = getDerivative(e, 0, 0, i);
+      double dN_dy = getDerivative(e, 0, 1, i);
+      double dN_dz = getDerivative(e, 0, 2, i);
+
+      B.Set(0, base + 0, dN_dx);  // ε_xx
+      B.Set(1, base + 1, dN_dy);  // ε_yy
+      B.Set(2, base + 2, dN_dz);  // ε_zz
+      B.Set(3, base + 0, dN_dy);  // ε_xy
+      B.Set(3, base + 1, dN_dx);
+      B.Set(4, base + 1, dN_dz);  // ε_yz
+      B.Set(4, base + 2, dN_dy);
+      B.Set(5, base + 2, dN_dx);  // ε_zx
+      B.Set(5, base + 0, dN_dz);
     }
     printf ("BMAT\n");
-    Bmat.Print();
+    B.Print();
     Matrix BT(m_nodxelem* m_dim,2*m_dim);
-    BT=Bmat.getTranspose();
+    BT=B.getTranspose();
     Matrix D(6,6);
     
     double G  = mat[e]->Elastic().G();
@@ -76,9 +80,14 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     for (int d=0;d<3;d++) D.Set(d,d,1.0-nu);
     for (int d=3;d<6;d++) D.Set(d,d,(1.0-2.0*nu)/2.0);    
                 
-    MatMul(MatMul(BT,D),Bmat, m_Kmat[e]);
+    MatMul(MatMul(BT,D),B, m_Kmat[e]);
     //printf("K ELEM\n");
     //m_Kmat[e]->Print();
+
+    // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
+    *(m_Kmat[e]) = *(m_Kmat[e]) *vol[e];  // Multiply by element volume (Ve)
+    
+    
   }//element
   
 }
@@ -204,5 +213,95 @@ dev_t void Domain_d::assemblyForces(){
 
 
 }//assemblyForcesNonLock
+
+
+
+//~ void Domain_d::assemblyGlobalSolverMatrix(){
+  
+  //~ for (int e = 0; e < m_elem_count; ++e) {
+      //~ const Matrix& Ke = *(m_Kmat[e]);  // Dense local stiffness matrix
+
+      //~ // Collect global DOF indices for this element
+      //~ std::vector<int> global_dofs(m_nodxelem * m_dim);
+      //~ for (int a = 0; a < m_nodxelem; ++a) {
+          //~ //int node = elem_conn[e][a];
+          //~ int node = getElemNode(e,a);
+          //~ for (int i = 0; i < m_dim; ++i) {
+              //~ global_dofs[a * m_dim + i] = node * m_dim + i;
+          //~ }
+      //~ }
+
+      //~ // Assemble into global matrix
+      //~ for (int i = 0; i < global_dofs.size(); ++i) {
+          //~ int I = global_dofs[i];
+          //~ for (int j = 0; j < global_dofs.size(); ++j) {
+              //~ int J = global_dofs[j];
+              //~ //global_K[I][J] += Ke(i, j);
+          //~ }
+      //~ }
+  //~ } //elem_count
+  
+  
+//~ }
+
+
+
+void Domain_d::assemblyGlobalSolverMatrix() {
+    // Triplet format: (row, col, value)
+    std::vector<std::tuple<int, int, double>> triplets;
+
+    for (int e = 0; e < m_elem_count; ++e) {
+        const Matrix& Ke = *(m_Kmat[e]);
+
+        std::vector<int> global_dofs(m_nodxelem * m_dim);
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int node = getElemNode(e, a);
+            for (int i = 0; i < m_dim; ++i) {
+                global_dofs[a * m_dim + i] = node * m_dim + i;
+            }
+        }
+
+        // Collect non-zero entries
+        for (int i = 0; i < global_dofs.size(); ++i) {
+            int I = global_dofs[i];
+            for (int j = 0; j < global_dofs.size(); ++j) {
+                int J = global_dofs[j];
+                //~ if (Ke(i, j) != 0.0) {  // Skip zeros
+                    //~ triplets.emplace_back(I, J, Ke(i, j));
+                //~ }
+            }
+        }
+    }
+
+    // Build sparse matrix (e.g., Eigen::SparseMatrix)
+    //sparse_K.setFromTriplets(triplets.begin(), triplets.end());
+}
+
+
+  //~ std::vector<std::unordered_set<int>> dof_neighbors(n_nodes * m_dim);
+
+  //~ // Loop over all elements
+  //~ for (int e = 0; e < m_elem_count; ++e) {
+      //~ for (int a = 0; a < m_nodxelem; ++a) {
+          //~ int node_a = elem_conn[e][a];
+          //~ for (int i = 0; i < m_dim; ++i) {
+              //~ int dof_a = node_a * m_dim + i;
+              //~ for (int b = 0; b < m_nodxelem; ++b) {
+                  //~ int node_b = elem_conn[e][b];
+                  //~ for (int j = 0; j < m_dim; ++j) {
+                      //~ int dof_b = node_b * m_dim + j;
+                      //~ dof_neighbors[dof_a].insert(dof_b);
+                  //~ }
+              //~ }
+          //~ }
+      //~ }
+  //~ }
+
+
+//~ // Now count total number of nonzeros (NNZ)
+//~ int nnz = 0;
+//~ for (const auto& neighbors : dof_neighbors) {
+    //~ nnz += neighbors.size();  // Number of unique DOFs connected to this DOF
+//~ }
 
 };
