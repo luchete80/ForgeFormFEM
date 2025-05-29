@@ -77,8 +77,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     D.Set(0,1, f*nu);                 D.Set(0,2, f*nu);
     D.Set(1,0, f*nu);                 D.Set(1,2, f*nu);
     D.Set(2,0, f*nu);D.Set(2,1, f*nu);
-    for (int d=0;d<3;d++) D.Set(d,d,1.0-nu);
-    for (int d=3;d<6;d++) D.Set(d,d,(1.0-2.0*nu)/2.0);    
+    for (int d=0;d<3;d++) D.Set(d,d,f*(1.0-nu));
+    for (int d=3;d<6;d++) D.Set(d,d,f*(1.0-2.0*nu)/2.0);    
                 
     MatMul(MatMul(BT,D),B, m_Kmat[e]);
     //printf("K ELEM\n");
