@@ -85,7 +85,7 @@ set (SOURCES
                          #Contact.C
                          Domain_d.C
                          #Matrices.C
-                         #Mechanical.C
+                         Mechanical.C
                          Mesh.C
                          Matrices.C
                          Solver.C

@@ -51,7 +51,7 @@ void host_ Domain_d::Solve(){
   //CalcNodalVol(); //To calc nodal mass
   //CalcNodalMassFromVol(); //Repla
 
-
+  double dt = 1.0e-3; 
   
   Time = 0.0;
   int step_count = 0;
@@ -104,7 +104,9 @@ void host_ Domain_d::Solve(){
     // e_almansi = 0.5 * (np.eye(3) - np.linalg.inv(b))
     Matrix e(3,3);
     e = 0.5 * (Identity(3) - b.Inv());
-
+    
+    CalcStressStrain(dt);
+    
     // # 5. Compute stress from strain (if elastic) or plastic correction
     // sigma = constitutive_model(F, element.state_vars)   # returns Cauchy stress
 
