@@ -82,15 +82,18 @@ C = constitutive_matrix(E, nu)
 Ke, B, vol = compute_B_and_Ke(coords, C)
 
 # Apply fixed boundary conditions: fix all DOFs of node 0
-fixed_dofs = [0, 1, 2, 3,4,5,6,7,8,11]  # Node 0: x, y, z
+fixed_dofs = [0,1,2,  4,5 ,8]  # Node 0: x, y, z
 K_mod, f_mod = apply_dirichlet(Ke.copy(), f_ext.copy(), fixed_dofs)
 
-f_mod[11] = -1.0e-3
+#f_mod[ 9] = -1.0e3
+#f_mod[10] = -1.0e3
+f_mod[11] = -1.0e3
 # Solve system
 u = np.linalg.solve(K_mod, f_mod)
 
 # === Output results ===
 print("Displacements (U):")
+print ("K_mod",K_mod)
 for i in range(n_nodes):
     ux, uy, uz = u[3*i:3*i+3]
     print(f"Node {i}: Ux = {ux:.4e} m, Uy = {uy:.4e} m, Uz = {uz:.4e} m")

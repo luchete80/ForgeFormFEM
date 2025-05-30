@@ -94,9 +94,9 @@ void Solver_Eigen::assemblyGlobalMatrix() {
 
     K.setFromTriplets(triplets.begin(), triplets.end());
 
-    cout << "VALUES 9 10 "<<K.coeff(9, 10);
-    cout << "VALUES 10 9"<<K.coeff(10,9);
-    cout << "VALUES 8 9 "<<K.coeff(8, 9);
+    //~ cout << "VALUES 9 10 "<<K.coeff(9, 10);
+    //~ cout << "VALUES 10 9"<<K.coeff(10,9);
+    //~ cout << "VALUES 8 9 "<<K.coeff(8, 9);
     
     
 }
@@ -182,7 +182,12 @@ void Solver_Eigen::applyDirichletBCs() {
             R[dof] = value;
         }
     }
-
+    
+    
+    //~ R[dof] = value;
+    //~ R[dof] = value;
+    //~ R[dof] = value;
+    
     // Optional but recommended for performance
     K.makeCompressed();
     std::cout << "Matrix mat:\n" << K << std::endl;
