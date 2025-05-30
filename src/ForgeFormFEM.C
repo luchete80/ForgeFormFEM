@@ -309,8 +309,8 @@ int main(int argc, char **argv) {
     //#else    
     if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
     //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
-      dom_d->AddBCVelNode(i,0,-0.0);
-      dom_d->AddBCVelNode(i,1,-0.0);
+      //dom_d->AddBCVelNode(i,0,-0.0);
+      //dom_d->AddBCVelNode(i,1,-0.0);
       dom_d->AddBCVelNode(i,2,-1.0e-8);
       //cout << "Node "<<i <<" vel "<<endl;
       velcount++;

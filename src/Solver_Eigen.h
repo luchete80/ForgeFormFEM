@@ -154,12 +154,12 @@ void Solver_Eigen::applyDirichletBCs() {
             // Zero out the row (except diagonal)
             for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
                 if (it.row()) {it.valueRef() = 0.0;cout << "OK, row"<<it.row()<<", dof"<<dof<<endl;}
-                else cout << "ERROR, row"<<it.col()<<", dof"<<dof<<endl;
+                else cout << "ERROR, row"<<it.row()<<", dof"<<dof<<endl;
             }
             
             // Zero out the row (skip diagonal)
             for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
-                if (it.col() != dof) it.valueRef() = 0.0;
+                if (it.row() != dof) it.valueRef() = 0.0;
             }
 
             // Set diagonal and RHS
