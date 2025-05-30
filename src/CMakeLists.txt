@@ -91,7 +91,7 @@ set (SOURCES
                          Solver.C
                          #input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
-                         #VTKWriter.C
+                         VTKWriter.C
                    )
 
 if (BUILD_REMESH)

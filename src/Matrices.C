@@ -55,10 +55,12 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
       double dN_dx = getDerivative(e, 0, 0, i);
       double dN_dy = getDerivative(e, 0, 1, i);
       double dN_dz = getDerivative(e, 0, 2, i);
-
+      
+      cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
       B.Set(0, base + 0, dN_dx);  // ε_xx
       B.Set(1, base + 1, dN_dy);  // ε_yy
       B.Set(2, base + 2, dN_dz);  // ε_zz
+      
       B.Set(3, base + 0, dN_dy);  // ε_xy
       B.Set(3, base + 1, dN_dx);
       B.Set(4, base + 1, dN_dz);  // ε_yz
@@ -67,8 +69,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
       B.Set(5, base + 0, dN_dz);
     }
   }
-    //printf ("BMAT\n");
-    //B.Print();
+    printf ("BMAT\n");
+    B.Print();
     Matrix BT(m_nodxelem* m_dim,2*m_dim);
     BT=B.getTranspose();
     Matrix D(6,6);
@@ -79,7 +81,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     double f  = E/((1.0+nu)*(1.0-2.0*nu)); 
     D.Set(0,1, f*nu);                 D.Set(0,2, f*nu);
     D.Set(1,0, f*nu);                 D.Set(1,2, f*nu);
-    D.Set(2,0, f*nu);D.Set(2,1, f*nu);
+    D.Set(2,0, f*nu);                 D.Set(2,1, f*nu);
     for (int d=0;d<3;d++) D.Set(d,d,f*(1.0-nu));
     for (int d=3;d<6;d++) D.Set(d,d,f*(1.0-2.0*nu)/2.0);    
                 
@@ -91,7 +93,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     *(m_Kmat[e]) = *(m_Kmat[e]) *vol[e];  // Multiply by element volume (Ve)
     
     //cout << "KMAT"<<endl;
-    //(m_Kmat[e])->Print();
+    (m_Kmat[e])->Print();
     
   }//element
   

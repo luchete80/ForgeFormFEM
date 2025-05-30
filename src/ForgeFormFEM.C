@@ -311,7 +311,7 @@ int main(int argc, char **argv) {
     //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
       //dom_d->AddBCVelNode(i,0,-0.0);
       //dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-1.0e-8);
+      dom_d->AddBCVelNode(i,2,-1.0e-3);
       //cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     

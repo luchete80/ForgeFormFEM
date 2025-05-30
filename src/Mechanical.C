@@ -158,7 +158,7 @@ dev_t void Domain_d::calcElemHourglassForces()
           for (int n = 0; n < m_nodxelem; n++)
             m_f_elem_hg[offset + n * m_dim + d] -= hmod[d][j] * Sig.getVal(j, n);
 
-      // 💡 Hourglass stiffness coefficient (empirical tuning)
+      // Hourglass stiffness coefficient (empirical tuning)
       double c_h = 0.1 * mat[e]->Elastic().E() * pow(vol[e], 2.0 / 3.0);  // E = Young's modulus
 
       // Scale HG forces

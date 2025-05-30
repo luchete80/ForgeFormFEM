@@ -51,8 +51,10 @@ void Solver_Eigen::Allocate(){
   m_dof = m_dom->m_node_count * m_dom->m_dim;
   cout << "Allocate for Domain DOFs: "<< m_dof<<endl;
   K.resize(m_dof,m_dof);
-  U.resize(m_dof);
-  R.resize(m_dof);
+  //U.resize(m_dof);
+  U = Eigen::VectorXd::Zero(m_dof);
+  //R.resize(m_dof);
+  R = Eigen::VectorXd::Zero(m_dof);
 
   // Now K has positive dimensions and you can safely call .sum(), .norm(), etc.
   std::cout << "K.sum() = " << K.sum() << std::endl;
@@ -90,6 +92,12 @@ void Solver_Eigen::assemblyGlobalMatrix() {
     }
 
     K.setFromTriplets(triplets.begin(), triplets.end());
+
+    cout << "VALUES 9 10 "<<K.coeff(9, 10);
+    cout << "VALUES 10 9"<<K.coeff(10,9);
+    cout << "VALUES 8 9 "<<K.coeff(8, 9);
+    
+    
 }
 
 //~ void Solver_Eigen::SetBCs(){
@@ -151,16 +159,22 @@ void Solver_Eigen::applyDirichletBCs() {
             int dof = nodes[i] * m_dom->m_dim + dim;
             double value = values[i];
             cout << "dof: "<<dof<<", "<<value<<endl;
-            // Zero out the row (except diagonal)
-            for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
-                if (it.row()) {it.valueRef() = 0.0;cout << "OK, row"<<it.row()<<", dof"<<dof<<endl;}
-                else cout << "ERROR, row"<<it.row()<<", dof"<<dof<<endl;
-            }
             
-            // Zero out the row (skip diagonal)
-            for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
-                if (it.row() != dof) it.valueRef() = 0.0;
+       // Clear row
+        for (int k = K.outerIndexPtr()[dof]; k < K.outerIndexPtr()[dof + 1]; ++k) {
+            if (K.innerIndexPtr()[k] != dof)
+                K.valuePtr()[k] = 0.0;
+        }
+
+        // Clear column
+        for (int col = 0; col < K.outerSize(); ++col) {
+            for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+                if (it.row() == dof && it.col() != dof) {
+                    cout << "clear row "<<it.row() <<", "<<it.col()<<endl; 
+                    it.valueRef() = 0.0;
+                }
             }
+        }
 
             // Set diagonal and RHS
             K.coeffRef(dof, dof) = 1.0;
@@ -170,13 +184,17 @@ void Solver_Eigen::applyDirichletBCs() {
 
     // Optional but recommended for performance
     K.makeCompressed();
-
+    std::cout << "Matrix mat:\n" << K << std::endl;
+    
 }
+
+
 int Solver_Eigen::Solve(){
 
 
     std::cout << "Matrix mat:\n" << K << std::endl;
-
+    std::cout << "Vector mat:\n" << R << std::endl;
+    
     //R << 1, -2, 0;
     std::cout << "K norm: " << K.norm() << std::endl;
     cout << "Analyzing pattern"<<endl;
