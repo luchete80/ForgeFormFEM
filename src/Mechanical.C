@@ -105,6 +105,72 @@ dev_t void Domain_d::CalcElemVol(){
   }//el
 }
 
+////////////////////////////////
+///// HOURGLASSING /////////////
+////////////////////////////////
+//~ Mode	Node 0	Node 1	Node 2	Node 3
+//~ 1	1	-1	 0	 0
+//~ 2	0	 1	-1	 0
+//~ 3	0	 0	 1	-1
+dev_t void Domain_d:: calcElemHourglassForces()
+{
+  if (m_dim != 3 || m_nodxelem != 4) // Only 3D tetra mesh enters here
+    return;
+
+  int jmax = 3;  // 3 hourglass modes for tetra
+
+  // Define hourglass mode vectors Sig(jmax x m_nodxelem)
+  // Each row is an hourglass mode; each column corresponds to node
+  // These represent the hourglass vectors H_i
+  double sig_[3][4] = {
+    {  1.0, -1.0,  0.0,  0.0 },  // HG mode 1
+    {  0.0,  1.0, -1.0,  0.0 },  // HG mode 2
+    {  0.0,  0.0,  1.0, -1.0 }   // HG mode 3
+  };
+
+  Matrix Sig(jmax, m_nodxelem);
+  for (int i = 0; i < jmax; i++)
+    for (int n = 0; n < m_nodxelem; n++)
+      Sig.Set(i, n, sig_[i][n]);
+
+  double hmod[3][3] = {0};  // m_dim x jmax (3x3)
+  
+  par_loop(e, m_elem_count) {
+    if (m_gp_count == 1) {
+      int offset = e * m_nodxelem * m_dim;
+
+      // Zero hourglass mode contributions and forces
+      for (int d = 0; d < m_dim; d++)
+        for (int j = 0; j < jmax; j++)
+          hmod[d][j] = 0.0;
+
+      for (int d = 0; d < m_dim; d++)
+        for (int n = 0; n < m_nodxelem; n++)
+          m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+
+      // Compute hourglass mode projections of nodal velocities
+      for (int d = 0; d < m_dim; d++)
+        for (int j = 0; j < jmax; j++)
+          for (int n = 0; n < m_nodxelem; n++)
+            hmod[d][j] += getVElem(e, n, d) * Sig.getVal(j, n);
+
+      // Compute hourglass forces according to Goudreau
+      for (int d = 0; d < m_dim; d++)
+        for (int j = 0; j < jmax; j++)
+          for (int n = 0; n < m_nodxelem; n++)
+            m_f_elem_hg[offset + n * m_dim + d] -= hmod[d][j] * Sig.getVal(j, n);
+
+      // Hourglass coefficient c_h calculation (similar but adapted)
+      // Typical scaling for tetra (volume^(2/3)) and density, sound speed
+      double c_h = 0.15 * pow(vol[e], 2.0 / 3.0) * rho[e] * 0.25 * mat[e]->cs0;
+
+      // Apply coefficient scaling to hourglass forces
+      for (int n = 0; n < m_nodxelem; n++)
+        for (int d = 0; d < m_dim; d++)
+          m_f_elem_hg[offset + n * m_dim + d] *= c_h;
+    }
+  }
+}
 
 
 };

@@ -5,3 +5,10 @@
          - Added class Eigen Solver
          
 20250530 - Adding EIGEN Elastic Simple Solver 
+         - Fixing getElementNode()
+         - Adding PETSC first functions.
+         - Adding Diricket Eigen BCs
+         - SINCE SOLVING ELASTIC COMPRESSION EXAMPLE SYSTEM DIVERGES:
+         - Adding hourglass forces for tetras (#5)
+         - 
+---------------------------------------------------------------------------------------------------------------------

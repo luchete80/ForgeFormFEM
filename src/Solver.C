@@ -198,6 +198,7 @@ void host_ Domain_d::ElasticSolve(){
   m_solver->Allocate();
   cout << "Assemblying matrix "<<endl;
   m_solver->assemblyGlobalMatrix();
+  m_solver->applyDirichletBCs();
   cout << "Solving system"<<endl;
   m_solver->Solve();
   

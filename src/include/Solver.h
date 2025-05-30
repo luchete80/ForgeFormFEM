@@ -59,7 +59,7 @@ public:
   virtual void Allocate(const int &dim){
     m_dof = dim;
   }
-
+  virtual void applyDirichletBCs(){}
 
   virtual ~Solver(){}
 

@@ -48,6 +48,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   par_loop(e, m_elem_count){
     /// TODO: CHANGE FOR DIM = 2
     Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    if (m_dim == 3){
+    //3D Voigt notation, where:
     for (int i=0;i<m_nodxelem;i++){
       int base = m_dim * i;
       double dN_dx = getDerivative(e, 0, 0, i);
@@ -64,6 +66,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
       B.Set(5, base + 2, dN_dx);  // ε_zx
       B.Set(5, base + 0, dN_dz);
     }
+  }
     //printf ("BMAT\n");
     //B.Print();
     Matrix BT(m_nodxelem* m_dim,2*m_dim);
