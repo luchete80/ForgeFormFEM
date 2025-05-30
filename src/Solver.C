@@ -195,6 +195,10 @@ void host_ Domain_d::ElasticSolve(){
   Solver_Eigen *solver = new Solver_Eigen();
   m_solver = solver;
   m_solver->setDomain(this);
+  m_solver->Allocate();
+  m_solver->assemblyGlobalMatrix();
+  cout << "Solving system"<<endl;
+  m_solver->Solve();
   
   
   }//ELASTICSOLVE

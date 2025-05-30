@@ -51,6 +51,7 @@ public:
 	m_dim(d)
 	{}
   void setDomain(Domain_d *d){m_dom = d;}  
+  virtual void Allocate(){}
   virtual int Solve(){}
   
   virtual void assemblyGlobalMatrix(){}

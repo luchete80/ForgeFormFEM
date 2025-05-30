@@ -4,3 +4,4 @@
 20250529 - Fixed Bmat calculation
          - Added class Eigen Solver
          
+20250530 - Adding EIGEN Elastic Simple Solver 
