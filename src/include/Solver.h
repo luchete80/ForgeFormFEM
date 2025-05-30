@@ -31,10 +31,9 @@
 #include <time.h>
 
 
-class Domain_d;
-
-
 namespace MetFEM{
+
+class Domain_d;
 
 class Solver{
 public:
@@ -53,6 +52,7 @@ public:
   void setDomain(Domain_d *d){m_dom = d;}  
   virtual void Allocate(){}
   virtual int Solve(){}
+  virtual void SetRDOF(const int &, const double &val){}
   
   virtual void assemblyGlobalMatrix(){}
   

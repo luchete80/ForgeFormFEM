@@ -32,7 +32,6 @@ else()
 message ("OPENMP NOT FOUND")
 endif()
 set_source_files_properties(*.C 
-                          Matrices.C 
                            include/*.h src/include/defs.h src/include/utils.h
                           ${PROJECT_SOURCE_DIR}/src/include/*.cuh
 
@@ -89,6 +88,7 @@ set (SOURCES
                          Mesh.C
                          Matrices.C
                          Solver.C
+                         Solver_Eigen.C
                          #input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          VTKWriter.C
@@ -103,5 +103,7 @@ endif()
 add_executable(ForgeFormFEM ForgeFormFEM.C
                          "${SOURCES}"
                )
-
+add_library(ForgeFormFEMlib 
+                         "${SOURCES}"
+               )
 

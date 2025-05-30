@@ -10,11 +10,19 @@ include_directories(${EIGEN_INC_DIR})
 message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
 
+
 #LINUX
 #find_package(PETSc REQUIRED)
 
 
 add_executable(linear_test_matrix linear_test_matrix.cpp)
+target_include_directories(linear_test_matrix PRIVATE ../src)
+
+add_executable(test_1elem 
+                    test_1elem.cpp
+                    )
+                    
+target_link_libraries(test_1elem ForgeFormFEMlib)
 
 #add_executable(linear_test_petsc linear_test_petsc.cpp)
 
