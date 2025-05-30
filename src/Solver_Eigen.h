@@ -84,6 +84,7 @@ void Solver_Eigen::assemblyGlobalMatrix() {
                 int J = global_dofs[j];
                 double val = Ke->getVal(i, j);
                 if (val != 0.0) {
+                    cout << "I J "<< I <<", "<<J <<", val"<<val<<endl;
                     triplets.emplace_back(I, J, val);
                 }
                 // Optional: keep or remove this debug print
