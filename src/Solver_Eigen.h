@@ -34,11 +34,11 @@ protected:
 
 
 void Solver_Eigen::Allocate(){
-  m_dim = m_dom->m_node_count * m_dom->m_dim;
-  cout << "Allocate for Domain DOFs: "<< m_dim<<endl;
-  K.resize(m_dim,m_dim);
-  U.resize(m_dim);
-  R.resize(m_dim);
+  m_dof = m_dom->m_node_count * m_dom->m_dim;
+  cout << "Allocate for Domain DOFs: "<< m_dof<<endl;
+  K.resize(m_dof,m_dof);
+  U.resize(m_dof);
+  R.resize(m_dof);
 
   // Now K has positive dimensions and you can safely call .sum(), .norm(), etc.
   std::cout << "K.sum() = " << K.sum() << std::endl;
@@ -46,37 +46,37 @@ void Solver_Eigen::Allocate(){
 }
 
 void Solver_Eigen::assemblyGlobalMatrix() {
-    int ndof = m_dom->m_nodxelem * m_dim;
+    int ndof = m_dom->m_nodxelem * m_dom->m_dim; // DOFs per element
     std::vector<T> triplets;
-    triplets.reserve(m_dom->m_elem_count * ndof * ndof);  // Preallocate
+    triplets.reserve(m_dom->m_elem_count * ndof * ndof);
 
     for (int e = 0; e < m_dom->m_elem_count; ++e) {
         Matrix *Ke = m_dom->m_Kmat[e];
-        std::vector<int> global_dofs(ndof);
+        std::vector<int> global_dofs(ndof);  // <<--- FIXED
 
         for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            cout << "Element "<<e<<endl;
             int node = m_dom->getElemNode(e, a);
-            for (int i = 0; i < m_dim; ++i) {
-                global_dofs[a * m_dim + i] = node * m_dim + i;
+            //int node = m_dom->m_elnod[e*m_dom->m_nodxelem+a];
+            for (int i = 0; i < m_dom->m_dim; ++i) {
+                //global_dofs[a * m_dom->m_dim + i] = node * m_dom->m_dim + i;
             }
         }
 
-        for (int i = 0; i < ndof; ++i) {
-            int I = global_dofs[i];
-            for (int j = 0; j < ndof; ++j) {
-                int J = global_dofs[j];
-                double val = Ke->getVal(i, j);
-                if (val != 0.0) {
-                    triplets.emplace_back(I, J, val);
-                }
-                else {
-                  cout << "Error, val is ZERO"<<endl;
-                  }
-            }
-        }
+        //~ for (int i = 0; i < ndof; ++i) {  // <<--- FIXED
+            //~ int I = global_dofs[i];
+            //~ for (int j = 0; j < ndof; ++j) {  // <<--- FIXED
+                //~ int J = global_dofs[j];
+                //~ double val = Ke->getVal(i, j);
+                //~ if (val != 0.0) {
+                    //~ triplets.emplace_back(I, J, val);
+                //~ }
+                //~ // Optional: keep or remove this debug print
+            //~ }
+        //~ }
     }
 
-    K.setFromTriplets(triplets.begin(), triplets.end());
+    //~ K.setFromTriplets(triplets.begin(), triplets.end());
 }
 
 int Solver_Eigen::Solve(){

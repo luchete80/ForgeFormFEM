@@ -40,7 +40,7 @@ class Solver{
 public:
 
 	//Solver<number>():matdim(0)
-  Solver():m_dim(0)
+  Solver():m_dof(0)
 	{
 	    maxiter=100;
       ptol=1.0e-3;
@@ -48,7 +48,7 @@ public:
 	}
 	//Solver<number>(const int &d):
   Solver(const int &d):
-	m_dim(d)
+	m_dof(d)
 	{}
   void setDomain(Domain_d *d){m_dom = d;}  
   virtual void Allocate(){}
@@ -57,7 +57,7 @@ public:
   virtual void assemblyGlobalMatrix(){}
   
   virtual void Allocate(const int &dim){
-    m_dim = dim;
+    m_dof = dim;
   }
 
 
@@ -72,7 +72,7 @@ protected:
 
 	//number rtol,abstol;
   double rtol,abstol;
-	int m_dim;		//CONST?
+	int m_dof;		//CONST?
 	int maxits;
   
   Domain_d *m_dom;
