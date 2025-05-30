@@ -119,7 +119,7 @@ void Solver_Eigen::applyDirichletBCs() {
     for (int dim = 0; dim < m_dom->m_dim; ++dim) {
         int* nodes = nullptr;
         int count = m_dom->bc_count[dim];
-
+        cout << "DIM "<< dim << " BC Count: "<<count<<endl;
         if (dim == 0) nodes = m_dom->bcx_nod;
         else if (dim == 1) nodes = m_dom->bcy_nod;
         else if (dim == 2) nodes = m_dom->bcz_nod;
@@ -150,7 +150,13 @@ void Solver_Eigen::applyDirichletBCs() {
         for (int i = 0; i < count; ++i) {
             int dof = nodes[i] * m_dom->m_dim + dim;
             double value = values[i];
-
+            cout << "dof: "<<dof<<", "<<value<<endl;
+            // Zero out the row (except diagonal)
+            for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
+                if (it.row()) {it.valueRef() = 0.0;cout << "OK, row"<<it.row()<<", dof"<<dof<<endl;}
+                else cout << "ERROR, row"<<it.col()<<", dof"<<dof<<endl;
+            }
+            
             // Zero out the row (skip diagonal)
             for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
                 if (it.col() != dof) it.valueRef() = 0.0;
@@ -168,6 +174,8 @@ void Solver_Eigen::applyDirichletBCs() {
 }
 int Solver_Eigen::Solve(){
 
+
+    std::cout << "Matrix mat:\n" << K << std::endl;
 
     //R << 1, -2, 0;
     std::cout << "K norm: " << K.norm() << std::endl;
