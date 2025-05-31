@@ -140,15 +140,15 @@ int main(int argc, char **argv) {
   Solver_Eigen *solver = new Solver_Eigen();
   
   // m_solver = solver;
-  // m_solver->setDomain(this);
-  // m_solver->Allocate();
-  // cout << "Assemblying matrix "<<endl;
-  // m_solver->assemblyGlobalMatrix();
+  solver->setDomain(dom_d);
+  solver->Allocate();
+  cout << "Assemblying matrix "<<endl;
+  solver->assemblyGlobalMatrix();
 
   
-  // m_solver->applyDirichletBCs();
+  solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  // m_solver->Solve();
+  //solver->Solve();
 
 
 	// cout << "Program ended."<<endl;
