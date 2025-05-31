@@ -78,13 +78,17 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     double G  = mat[e]->Elastic().G();
     double E  = mat[e]->Elastic().E();
     double nu = mat[e]->Elastic().Poisson();
-    double f  = E/((1.0+nu)*(1.0-2.0*nu)); 
-    D.Set(0,1, f*nu);                 D.Set(0,2, f*nu);
-    D.Set(1,0, f*nu);                 D.Set(1,2, f*nu);
-    D.Set(2,0, f*nu);                 D.Set(2,1, f*nu);
-    for (int d=0;d<3;d++) D.Set(d,d,f*(1.0-nu));
-    for (int d=3;d<6;d++) D.Set(d,d,f*(1.0-2.0*nu)/2.0);    
-                
+    double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
+    D.Set(0,1, lambda);               D.Set(0,2, lambda);
+    D.Set(1,0, lambda);               D.Set(1,2, lambda);
+    D.Set(2,0, lambda);               D.Set(2,1, lambda);
+    
+    printf("Cmat\n");
+    
+    for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
+    for (int d=3;d<6;d++) D.Set(d,d,G);    
+    D.Print();
+    
     MatMul(MatMul(BT,D),B, m_Kmat[e]);
     //printf("K ELEM\n");
     //m_Kmat[e]->Print();

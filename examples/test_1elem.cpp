@@ -75,10 +75,10 @@ int main(int argc, char **argv) {
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
   //cout << "Domain Dimension: "<< m_dim<<endl;
-  
+   
   ////// MATERIAL  
   double E, nu, rho;
-  E   = 70.0e9;
+  E   = 200.0e9;
   nu  = 0.3;
   rho = 2700.0;
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   
   int fixcount =0;
   int velcount =0;
-  
+    
   //AddBCVelNode(Node,axis,val)
   for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
   dom_d->

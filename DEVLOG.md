@@ -12,4 +12,6 @@
          - Adding hourglass forces for tetras (#5)
          - FIXED Eigen solver for column major
          - Setting some defaults
+         - Fixed Material matrix. 
+         - Validated Single Steel Element with Python and EIGEN.
 ---------------------------------------------------------------------------------------------------------------------

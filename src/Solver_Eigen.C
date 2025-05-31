@@ -1,6 +1,7 @@
 #include "Solver_Eigen.h"
 #include "Matrix.h"
 #include "Domain_d.h"
+#include <iomanip> //setprecision
 
 using namespace std;
 
@@ -192,7 +193,7 @@ int Solver_Eigen::Solve(){
       return -1;
     }
 
-    std::cout << "Solution:\n" << U << std::endl; // Should print [1, -1, -2]
+    std::cout << "Solution:\n" << std::setprecision(8) <<U << std::endl; // Should print [1, -1, -2]
 
     return 0;
   

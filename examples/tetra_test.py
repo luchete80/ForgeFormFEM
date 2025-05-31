@@ -1,7 +1,7 @@
 import numpy as np
 
 # === Material properties ===
-E = 210e9       # Young's modulus [Pa]
+E = 200e9       # Young's modulus [Pa]
 nu = 0.3        # Poisson's ratio
 dim = 3
 n_nodes = 4
@@ -26,6 +26,7 @@ def constitutive_matrix(E, nu):
     C[:3, :3] = lmbda
     np.fill_diagonal(C[:3, :3], lmbda + 2 * mu)
     C[3:, 3:] = np.eye(3) * mu
+    print ("C matrix ",C)
     return C
 
 # === Compute B matrix and element stiffness ===
