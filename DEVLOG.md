@@ -11,4 +11,5 @@
          - SINCE SOLVING ELASTIC COMPRESSION EXAMPLE SYSTEM DIVERGES:
          - Adding hourglass forces for tetras (#5)
          - FIXED Eigen solver for column major
+         - Setting some defaults
 ---------------------------------------------------------------------------------------------------------------------

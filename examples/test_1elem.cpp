@@ -38,19 +38,25 @@ using namespace std;
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
-
+ 
 
   int dim = 3;
 
   int m_nodxelem = 4; //TO CHANGE (CONSTANT)  
-  int m_node_count = 1;
+  int m_node_count = 4;
   int m_elem_count = 1;
   
   Domain_d *dom_d = new Domain_d;
-  
+  cout << "Set dimension"<<endl;
   dom_d->SetDimension(m_node_count,m_elem_count);	 //AFTER CREATING DOMAIN
+  cout << "Done. Setting nodes..."<<endl; 
+  dom_d->setNode(0,0,0,0);
+  dom_d->setNode(1,1,0,0);
+  dom_d->setNode(2,0,1,0);
+  dom_d->setNode(3,0,0,1);
+  cout << "Done "<<endl;
   
-
+  ////#ifdef CUDA
   // double *x_H =  new double [m_dim*m_node_count];
   // for (int n=0;n<m_node_count;n++){
     // //cout << "Node "<<n<<endl;
@@ -62,7 +68,8 @@ int main(int argc, char **argv) {
   // }
   
   int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
-  
+  elnod_h[0]=0;elnod_h[1]=1;elnod_h[2]=2;elnod_h[3]=3;
+  cout << "Setting Nod Elements"<<endl;
   dom_d->setNodElem(elnod_h);
   
   cout << "Node Size: "<<m_node_count<<endl;  
@@ -108,21 +115,17 @@ int main(int argc, char **argv) {
   
   int fixcount =0;
   int velcount =0;
-  for (int i=0;i<dom_d->getNodeCount();i++){
+  
+  //AddBCVelNode(Node,axis,val)
+  for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
+  dom_d->
+  AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
+  dom_d->AddBCVelNode(2,2,0);
 
-    if (dom_d->getPosVec3(i).z <0.002) {
-      for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-      fixcount++;
       //cout << "node "<< i<<" fixed "<<endl;
-    }
+    
+  //if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) 
 
-    if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
-
-      velcount++;
-    }     
-
-  }//Nodes
- 
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
   cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
@@ -148,7 +151,8 @@ int main(int argc, char **argv) {
   
   solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  //solver->Solve();
+  solver->SetRDOF(11,-1.0e3);
+  solver->Solve();
 
 
 	// cout << "Program ended."<<endl;

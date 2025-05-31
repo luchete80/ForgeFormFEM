@@ -132,6 +132,9 @@ public:
   
   void setNodElem(int *elnod);//For assembly and parallel processing
   
+  ///// ALREADY ALLOCATED
+  void setNode(const int &i, const double &_x, const double &_y, const double &_z);
+  
   void WriteToVTK(char *);
   int WriteToCSV(char *);
   

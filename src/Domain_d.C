@@ -362,7 +362,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (m_H,          double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   
   cout <<"setting deriv allocation size of "<<m_dim * m_nodxelem * m_elem_count * m_gp_count<<endl;
-  cout <<"mdim"<<m_dim << " "<<m_nodxelem<<" "<< m_elem_count <<" "<<m_gp_count<<endl;
+  cout <<"mdim: "<<m_dim << " "<<", Nod x Elem "<<m_nodxelem<<" "<< m_elem_count <<" "<<m_gp_count<<endl;
   malloc_t (m_dH_detJ_dx,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dy,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dz,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
@@ -762,5 +762,17 @@ host_   void Domain_d::AllocateBCs() {
   delete bcx_nod_h_ptr,bcy_nod_h_ptr,bcz_nod_h_ptr;
   
 }
+
+  ///// ALREADY ALLOCATED
+  void Domain_d::setNode(const int &i, const double &_x, const double &_y, const double &_z){
+    if (i<m_node_count){
+    x[i*m_dim  ]=_x;
+    x[i*m_dim+1]=_y;
+    x[i*m_dim+2]=_z;
+    //return 1;
+    }
+  else{cout << "Node allocation error, node pos larger than node count."<<endl;}
+        //return 0;
+  }
 
 };
