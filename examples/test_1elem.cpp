@@ -20,7 +20,7 @@
 ************************************************************************************/
 
 #include "Domain_d.h"
-
+#include "Solver_Eigen.h"
 #include <iostream>
 #include "defs.h"
 
@@ -128,9 +128,30 @@ int main(int argc, char **argv) {
   
   //AFTER THIS CALL
   dom_d->AllocateBCs();
-  dom_d->ElasticSolve();
 
-	cout << "Program ended."<<endl;
+  //THIS IS LIKE SOLVE
+  dom_d->AssignMatAddress();
+  dom_d->calcElemJAndDerivatives();
+  dom_d->CalcElemVol();
+
+  //IMPLICIT 
+  dom_d->CalcMaterialStiffElementMatrix();
+  
+  Solver_Eigen *solver = new Solver_Eigen();
+  
+  // m_solver = solver;
+  // m_solver->setDomain(this);
+  // m_solver->Allocate();
+  // cout << "Assemblying matrix "<<endl;
+  // m_solver->assemblyGlobalMatrix();
+
+  
+  // m_solver->applyDirichletBCs();
+  // cout << "Solving system"<<endl;
+  // m_solver->Solve();
+
+
+	// cout << "Program ended."<<endl;
       
 
 	
