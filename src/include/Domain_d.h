@@ -80,7 +80,11 @@ public:
     contact = false;
     m_thermal = false;
     m_remesh_interval = 1e10;
+    
+    //DEFAULTS
     m_dim = 3;
+    m_gp_count = 1;
+    m_nodxelem = 4;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
