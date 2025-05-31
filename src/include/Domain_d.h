@@ -264,8 +264,10 @@ public:
   void Free();
   // IMPLICIT FUNCTIONS
   //--------------------------------------------------------------------------------------------------------------------------------
+  Matrix getElemBMatrix(const int &e);
   void CalcMaterialStiffElementMatrix();
   void CalcGeomStiffElementMatrix();  
+  void CalcElemIntForces();
 
   //--------------------------------------------------------------------------------------------------------------------------------
 

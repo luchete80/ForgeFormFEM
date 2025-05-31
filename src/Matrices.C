@@ -43,7 +43,33 @@ namespace MetFEM{
 // }
 
 ///// USES VOL OR DETERMINANT
-     
+/////// IN CUDA ISPREFERRED NOT TO SAVE IT
+Matrix Domain_d::getElemBMatrix(const int &e){
+  Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    if (m_dim == 3){
+    //3D Voigt notation, where:
+    for (int i=0;i<m_nodxelem;i++){
+      int base = m_dim * i;
+      double dN_dx = getDerivative(e, 0, 0, i);
+      double dN_dy = getDerivative(e, 0, 1, i);
+      double dN_dz = getDerivative(e, 0, 2, i);
+      
+      cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
+      B.Set(0, base + 0, dN_dx);  // ε_xx
+      B.Set(1, base + 1, dN_dy);  // ε_yy
+      B.Set(2, base + 2, dN_dz);  // ε_zz
+      
+      B.Set(3, base + 0, dN_dy);  // ε_xy
+      B.Set(3, base + 1, dN_dx);
+      B.Set(4, base + 1, dN_dz);  // ε_yz
+      B.Set(4, base + 2, dN_dy);
+      B.Set(5, base + 2, dN_dx);  // ε_zx
+      B.Set(5, base + 0, dN_dz);
+    }
+  }
+  return B;
+}
+
 void Domain_d::CalcMaterialStiffElementMatrix(){
   par_loop(e, m_elem_count){
     /// TODO: CHANGE FOR DIM = 2
@@ -102,6 +128,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   }//element
   
 }
+
+
 
 /// KGEO - NO B APPROACH
 //dev_t void Domain_d::CalcGeomStiffElementMatrix(){
@@ -225,7 +253,16 @@ dev_t void Domain_d::assemblyForces(){
 
 }//assemblyForcesNonLock
 
-
+void Domain_d::CalcElemIntForces(){
+  par_loop(e, m_elem_count){
+    //if (m_dim==3){
+    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    B = getElemBMatrix(e);
+    Matrix S(6,1);
+    MatMul(MatMul(B.getTranspose(),S),B, m_Kmat[e]);
+    
+  }
+}
 
 //~ void Domain_d::assemblyGlobalSolverMatrix(){
   
