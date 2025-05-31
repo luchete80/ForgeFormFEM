@@ -16,7 +16,8 @@ message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
 
 add_executable(linear_test_matrix linear_test_matrix.cpp)
-target_include_directories(linear_test_matrix PRIVATE ../src)
+#target_include_directories(linear_test_matrix PRIVATE ../src)
+link_directories("${CMAKE_BINARY_DIR}")
 
 add_executable(test_1elem 
                     test_1elem.cpp
