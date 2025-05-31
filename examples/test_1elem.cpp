@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
   //cout << "Domain Dimension: "<< m_dim<<endl;
-   
+     
   ////// MATERIAL  
   double E, nu, rho;
   E   = 200.0e9;

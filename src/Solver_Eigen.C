@@ -122,6 +122,7 @@ void Solver_Eigen::applyDirichletBCs() {
             cout << "dof: "<<dof<<", "<<value<<endl;
             
        // Clear row
+       //// THE SAME AS FOR COLUMN IMPLEMENTED WITH ROW DOES NOT WORK.
         for (int k = K.outerIndexPtr()[dof]; k < K.outerIndexPtr()[dof + 1]; ++k) {
             if (K.innerIndexPtr()[k] != dof)
                 K.valuePtr()[k] = 0.0;
