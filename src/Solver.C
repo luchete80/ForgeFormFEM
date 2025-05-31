@@ -109,29 +109,26 @@ void host_ Domain_d::Solve(){
     // C = F.T @ F                      # Right Cauchy-Green (not used in UL)
     // b = F @ F.T                      # Left Cauchy-Green
     // e_almansi = 0.5 * (np.eye(3) - np.linalg.inv(b))
-    Matrix e(3,3);
-    //e = 0.5 * (Identity(3) - b.Inv()); //Crash
+    Matrix _e(3,3);
+    _e = 0.5 * (Identity(3) - b.Inv()); //Crash
     
+    //TODO:
     //CalcStressStrain(dt); /////Setting sigma
-    
+    //CONVERT e to vector matrix (6x1)
+    // S= D _e
     // # 5. Compute stress from strain (if elastic) or plastic correction
     // sigma = constitutive_model(F, element.state_vars)   # returns Cauchy stress
 
-    // # 6. Build B-matrix (B_mat) for material stiffness
-    // B_mat = np.zeros((6, 12))   # 6 strain comp x 12 DOF (3 per node)
-    // for a in range(4):
-        // dN = gradN[a]  # 3x1
-        // B_mat[:, 3*a:3*a+3] = [
-            // [dN[0],     0,     0],
-            // [0,     dN[1],     0],
-            // [0,         0, dN[2]],
-            // [dN[1], dN[0],     0],
-            // [dN[2],     0, dN[0]],
-            // [0,     dN[2], dN[1]]
-        // ]
-
+    // # 6. Build B-matrix (B_mat) for material stiffness  
     // # 7. Compute internal force vector
     // fint = Ve * B_mat.T @ stress_to_voigt(sigma)
+    //BEFORE UPDATING x
+    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    B = getElemBMatrix(e);
+    Matrix S(6,1);
+    Matrix F_i(m_nodxelem*m_dim,1);
+    MatMul(B.getTranspose(),F_i);
+    
 
     // # 8. Material stiffness Kmat
     // D_tangent = compute_material_tangent(F, element.state_vars)
