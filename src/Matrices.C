@@ -130,6 +130,49 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   
 }
 
+void Domain_d::CalcGeometricStiffElementMatrix() {
+  par_loop(e, m_elem_count) {
+    Matrix& stress = *(m_stress_voigt[e]);  // 3x3 Cauchy stress tensor (assumed full matrix, not Voigt)
+    double Ve = vol[e];                     // element volume
+
+    Matrix& Kgeo = *(m_Kgeo[e]);            // 12x12 matrix (4 nodes × 3 DOF)
+    Kgeo.SetZero();
+
+    for (int a = 0; a < 4; ++a) {
+      // Get ∇Nᵃ = (dN_dx, dN_dy, dN_dz)
+      Matrix grad_a(3, 1);
+      grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
+      grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
+      grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+
+      for (int b = 0; b < 4; ++b) {
+        Matrix grad_b(3, 1);
+        grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
+        grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
+        grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+
+        // Multiply: sigma @ grad_b (3x1)
+        Matrix sigma_grad_b = MatMul(stress, grad_b);  // 3x1
+
+        // Then compute: kab = sigma_grad_b @ grad_aᵀ (3x3)
+        Matrix grad_a_T = grad_a.getTranspose();       // 1x3
+        Matrix kab = MatMul(sigma_grad_b, grad_a_T);   // 3x3
+
+        // Add to Kgeo at block (3a:3a+3, 3b:3b+3)
+        for (int i = 0; i < 3; ++i) {
+          for (int j = 0; j < 3; ++j) {
+            double old_val = Kgeo.getVal(3*a + i, 3*b + j);
+            double contrib = Ve * kab.getVal(i, j);
+            Kgeo.Set(3*a + i, 3*b + j, old_val + contrib);
+          }
+        }
+      }
+    }
+
+    Kgeo.Print();
+  }
+}
+
 
 
 /// KGEO - NO B APPROACH
