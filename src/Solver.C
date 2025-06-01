@@ -103,27 +103,28 @@ for (int e = 0; e < m_elem_count; e++) {
 
     // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
     Matrix strain_voigt(6, 1);
-    strain_voigt.Set(0, 0, e_almansi.Get(0, 0));  // ε_xx
-    strain_voigt.Set(1, 0, e_almansi.Get(1, 1));  // ε_yy
-    strain_voigt.Set(2, 0, e_almansi.Get(2, 2));  // ε_zz
-    strain_voigt.Set(3, 0, 2 * e_almansi.Get(0, 1)); // γ_xy = 2 * ε_xy
-    strain_voigt.Set(4, 0, 2 * e_almansi.Get(1, 2)); // γ_yz
-    strain_voigt.Set(5, 0, 2 * e_almansi.Get(2, 0)); // γ_zx
+    strain_voigt.Set(0, 0, e_almansi.getVal(0, 0));  // ε_xx
+    strain_voigt.Set(1, 0, e_almansi.getVal(1, 1));  // ε_yy
+    strain_voigt.Set(2, 0, e_almansi.getVal(2, 2));  // ε_zz
+    strain_voigt.Set(3, 0, 2 * e_almansi.getVal(0, 1)); // γ_xy = 2 * ε_xy
+    strain_voigt.Set(4, 0, 2 * e_almansi.getVal(1, 2)); // γ_yz
+    strain_voigt.Set(5, 0, 2 * e_almansi.getVal(2, 0)); // γ_zx
 
     // 5) Compute stress σ = D * ε
+    Matrix D(6,6);
+    D =  mat[e]->getElasticMatrix();
     Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x6 elastic stiffness matrix
 
     // 6) Build B matrix (strain-displacement) for the element
     Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
 
     // 7) Compute internal force: fint = V_e * B^T * σ
-    double Ve = computeElementVolume(e); // compute element volume in current config
     Matrix fint = MatMul(B.Transpose(), stress_voigt);
-    fint = fint * Ve;
+    fint = fint * vol[e];
 
     // 8) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
     Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
-    Kmat = Kmat * Ve;
+    Kmat = Kmat * vol[e];
 
     // 9) (Optional) Compute geometric stiffness Kgeo if needed
 

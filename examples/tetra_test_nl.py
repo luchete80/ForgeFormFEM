@@ -103,6 +103,14 @@ def compute_Kgeo(grads, sigma, volume):
 
     return Kgeo
 
+##ALTERNATIVE
+def compute_Kgeo_voigt(B, stress, volume):
+    S = np.zeros((6, 6))
+    S[:3, :3] = np.diag(stress[:3])
+    S[3:, 3:] = np.diag(stress[3:])
+    Kgeo = B.T @ S @ B * volume
+    return Kgeo
+
 def voigt_to_tensor(voigt):
     """
     Convert 6x1 Voigt vector to 3x3 symmetric tensor.

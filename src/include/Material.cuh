@@ -2,7 +2,7 @@
 #define _MATERIAL_CUH_
 
 #include "defs.h"
-
+#include "Matrix.h"
 class Particle;
 
 #define BILINEAR				0
@@ -101,7 +101,26 @@ class Material_{
 	// //virtual  __device__ inline double CalcYieldStress(const double &strain){return 0.0;};
 	// //virtual  __device__ inline double CalcYieldStress(const double &strain, const double &strain_rate, const double &temp){};
 	 spec_ const Elastic_& Elastic()const{return elastic_m;}
-};
+
+  Matrix getElasticMatrix(){
+      Matrix D(6,6);
+      double E = Elastic().E();
+      double nu = Elastic().Poisson();
+      double G = Elastic().G();
+      
+      double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
+      D.Set(0,1, lambda);               D.Set(0,2, lambda);
+      D.Set(1,0, lambda);               D.Set(1,2, lambda);
+      D.Set(2,0, lambda);               D.Set(2,1, lambda);
+      
+      printf("Cmat\n");
+      
+      for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
+      for (int d=3;d<6;d++) D.Set(d,d,G);    
+      return D;
+  }
+
+}; //MATERIAL 
 
 class _Plastic{
 	

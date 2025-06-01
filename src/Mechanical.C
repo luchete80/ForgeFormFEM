@@ -170,9 +170,14 @@ dev_t void Domain_d::calcElemHourglassForces()
 }
 
 void Domain_d::CalcElemIntForces(){
-  
-  
-  
+  par_loop(e, m_elem_count){
+    //if (m_dim==3){
+    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    B = getElemBMatrix(e);
+    Matrix S(6,1);
+    MatMul(MatMul(B.getTranspose(),S),B, m_Kmat[e]);
+    
+  }
 }
 
 };

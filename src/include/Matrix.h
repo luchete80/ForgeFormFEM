@@ -64,6 +64,7 @@ public:
     //~ }
   
   inline double & getVal(int a, int b);
+  double& at(int i, int j)const;          // non-const accessor for assignment
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   //__spec Matrix  operator=(const Matrix &m);
@@ -207,13 +208,13 @@ __spec Matrix Identity(const int &d){
     return ret;
 }
 //// OPERATION WITH MATRIX CREATION COULD PRODUCE MEM LEAKING
-__spec Matrix MatMul(Matrix &A, Matrix &B){
+__spec Matrix MatMul(const Matrix &A, const Matrix &B){
   Matrix ret(A.m_row,B.m_col);
   for (int i = 0; i<A.m_row; i++)
     for (int j = 0; j<B.m_col; j++)
       for (int k = 0; k<A.m_col; k++)
         //ret.m_data[i * A.m_ + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
-        ret.getVal(i,j) += A.getVal(i,k) * B.getVal(k,j); 
+        ret.getVal(i,j) += A.at(i,k) * B.at(k,j); //AT IS CONST
   
   
   
@@ -239,7 +240,10 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
   __spec double & Matrix::getVal(int a, int b){
     return m_data[m_col*a+b];
   }
-  
+
+  __spec double & Matrix::at(int a, int b)const{
+    return m_data[m_col*a+b];
+  }  
   __spec double & Matrix::operator()(int a, int b){
     return m_data[m_col*a+b];
   }
